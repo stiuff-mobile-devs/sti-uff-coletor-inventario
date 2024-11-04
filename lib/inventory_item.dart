@@ -1,4 +1,3 @@
-// inventory_item.dart
 class InventoryItem {
   final String name;
   final String description;

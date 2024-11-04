@@ -16,21 +16,21 @@ class AppDrawer extends StatelessWidget {
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       child: ListView(
         children: <Widget>[
-          const DrawerHeader(
-            decoration: BoxDecoration(
+          DrawerHeader(
+            decoration: const BoxDecoration(
               color: Colors.white,
             ),
             child: Row(
               children: [
                 Padding(
-                  padding: EdgeInsets.all(8.0),
-                  child: Icon(
-                    Icons.inventory_rounded,
-                    size: 42,
-                    color: Colors.black,
+                  padding: const EdgeInsets.all(8.0),
+                  child: Image.asset(
+                    'assets/icons/small-app-icon.png',
+                    width: 42,
+                    height: 42,
                   ),
                 ),
-                Text(
+                const Text(
                   'Coletor Inventário',
                   style: TextStyle(
                     color: Color.fromARGB(255, 41, 41, 41),
