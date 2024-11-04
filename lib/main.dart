@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:stiuffcoletorinventario/about_page.dart';
 import 'home_page.dart';
 import 'settings_page.dart';
-import 'app_colors.dart'; // Importando a classe de cores
+import 'app_colors.dart';
 
 void main() {
   runApp(const MyApp());

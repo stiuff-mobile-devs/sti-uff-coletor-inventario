@@ -33,8 +33,8 @@ class InfoCarouselState extends State<InfoCarousel> {
             ),
             items: [
               _buildCarouselItem('Imagem 1', Colors.lightBlueAccent),
-              _buildCarouselItem('Imagem 2', Colors.lightBlue),
-              _buildCarouselItem('Imagem 3', Colors.blueAccent),
+              _buildCarouselItem('Imagem 2', Colors.indigo),
+              _buildCarouselItem('Imagem 3', Colors.purpleAccent),
             ],
           ),
         ),
