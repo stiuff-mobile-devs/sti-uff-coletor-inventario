@@ -37,6 +37,7 @@ dependencies:
   cupertino_icons: ^1.0.8
   flutter_svg: ^2.0.11
   carousel_slider: ^5.0.0
+  camera: ^0.11.0+2
 
 dev_dependencies:
   flutter_test:
@@ -64,6 +65,7 @@ flutter:
   assets:
     - assets/icons/barcode.svg
     - assets/icons/small-app-icon.png
+    - assets/icons/scan-surface.svg
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see
