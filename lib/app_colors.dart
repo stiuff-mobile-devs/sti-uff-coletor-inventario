@@ -27,4 +27,5 @@ class AppColors {
   static const Color drawerHeaderColor = Color(0xFF2196F3);
   static const Color lightOrangeSplashColor = Color.fromARGB(255, 255, 202, 86);
   static const Color orangeSelectionColor = Color.fromARGB(255, 253, 179, 19);
+  static const Color pastelRedColor = Color.fromARGB(250, 250, 160, 160);
 }

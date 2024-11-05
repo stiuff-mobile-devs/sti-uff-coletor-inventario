@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:stiuffcoletorinventario/app_colors.dart';
 import 'package:stiuffcoletorinventario/app_drawer.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:stiuffcoletorinventario/camera_page.dart';
 import 'package:stiuffcoletorinventario/info_carousel.dart';
 import 'package:stiuffcoletorinventario/inventory_grid.dart';
 import 'package:stiuffcoletorinventario/package_filter_dialog.dart';
@@ -53,13 +54,20 @@ class _HomePageState extends State<HomePage> {
       ),
       floatingActionButton: FloatingActionButton(
         tooltip: "Leitor de Barras",
-        backgroundColor: AppColors.appBarColor,
+        backgroundColor: AppColors.pastelRedColor,
         splashColor: AppColors.lightOrangeSplashColor,
-        onPressed: () => {},
+        onPressed: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const CameraPage()),
+        ),
         child: SvgPicture.asset(
           'assets/icons/barcode.svg',
           width: 36,
           height: 36,
+          colorFilter: const ColorFilter.mode(
+            Colors.black,
+            BlendMode.srcIn,
+          ),
         ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
