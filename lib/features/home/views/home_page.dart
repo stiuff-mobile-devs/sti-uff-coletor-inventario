@@ -39,7 +39,7 @@ class _HomePageState extends State<HomePage> {
         elevation: 0,
         backgroundColor: Colors.blue,
       ),
-      drawer: const AppDrawer(selectedIndex: 0),
+      drawer: AppDrawer(selectedIndex: 0),
       body: SingleChildScrollView(
         child: Column(
           children: [

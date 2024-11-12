@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:stiuffcoletorinventario/features/about/views/about_page.dart';
+import 'package:stiuffcoletorinventario/features/login/view/login_screen.dart';
 import 'features/home/views/home_page.dart';
 import 'features/settings/views/settings_page.dart';
 import 'shared/utils/app_colors.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
   runApp(const MyApp());
 }
 
@@ -26,8 +30,9 @@ class MyApp extends StatelessWidget {
         splashColor: AppColors.lightOrangeSplashColor,
       ),
       debugShowCheckedModeBanner: false,
-      initialRoute: '/home',
+      initialRoute: '/login',
       routes: {
+        '/login': (context) => const LoginScreen(),
         '/home': (context) => const HomePage(),
         '/settings': (context) => const SettingsPage(),
         '/about': (context) => const AboutPage(),
