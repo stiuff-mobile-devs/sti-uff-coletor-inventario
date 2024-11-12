@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:stiuffcoletorinventario/app_drawer.dart';
+import 'package:stiuffcoletorinventario/shared/components/app_drawer.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});

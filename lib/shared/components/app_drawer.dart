@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:stiuffcoletorinventario/about_page.dart';
-import 'package:stiuffcoletorinventario/app_colors.dart';
-import 'package:stiuffcoletorinventario/custom_page_router.dart';
-import 'package:stiuffcoletorinventario/home_page.dart';
-import 'package:stiuffcoletorinventario/settings_page.dart';
+import 'package:stiuffcoletorinventario/features/about/views/about_page.dart';
+import 'package:stiuffcoletorinventario/shared/utils/app_colors.dart';
+import 'package:stiuffcoletorinventario/shared/utils/custom_page_router.dart';
+import 'package:stiuffcoletorinventario/features/home/views/home_page.dart';
+import 'package:stiuffcoletorinventario/features/settings/views/settings_page.dart';
 
 class AppDrawer extends StatelessWidget {
   final int selectedIndex;
