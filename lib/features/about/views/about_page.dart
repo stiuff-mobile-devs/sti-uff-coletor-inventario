@@ -8,7 +8,7 @@ class AboutPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(),
-      drawer: const AppDrawer(selectedIndex: 2),
+      drawer: AppDrawer(selectedIndex: 2),
       body: const Center(
         child: Text('About Page Content'),
       ),

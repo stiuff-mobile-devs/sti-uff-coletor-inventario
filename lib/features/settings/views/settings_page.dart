@@ -8,7 +8,7 @@ class SettingsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(),
-      drawer: const AppDrawer(selectedIndex: 1),
+      drawer: AppDrawer(selectedIndex: 1),
       body: const Center(
         child: Text('Settings Page Content'),
       ),

@@ -1,5 +1,8 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:flutter/material.dart';
 import 'package:stiuffcoletorinventario/features/about/views/about_page.dart';
+import 'package:stiuffcoletorinventario/features/login/controller/auth_controller.dart';
 import 'package:stiuffcoletorinventario/shared/utils/app_colors.dart';
 import 'package:stiuffcoletorinventario/shared/utils/custom_page_router.dart';
 import 'package:stiuffcoletorinventario/features/home/views/home_page.dart';
@@ -8,7 +11,9 @@ import 'package:stiuffcoletorinventario/features/settings/views/settings_page.da
 class AppDrawer extends StatelessWidget {
   final int selectedIndex;
 
-  const AppDrawer({super.key, required this.selectedIndex});
+  AppDrawer({super.key, required this.selectedIndex});
+
+  final AuthController authController = AuthController();
 
   @override
   Widget build(BuildContext context) {
@@ -59,8 +64,98 @@ class AppDrawer extends StatelessWidget {
             title: 'Sobre',
             index: 2,
           ),
+          ListTile(
+            leading: const Icon(
+              Icons.logout,
+              color: AppColors.shadowColor,
+            ),
+            title: const Text(
+              'Sair',
+              style: TextStyle(color: AppColors.shadowColor),
+            ),
+            onTap: () async {
+              bool? shouldLogout = await _showLogoutConfirmationDialog(context);
+
+              if (shouldLogout == true) {
+                await authController.signOut();
+                Navigator.pushReplacementNamed(context, '/login');
+              }
+            },
+          ),
         ],
       ),
+    );
+  }
+
+  Future<bool?> _showLogoutConfirmationDialog(BuildContext context) {
+    return showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12.0),
+          ),
+          elevation: 4,
+          backgroundColor: Colors.white,
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const SizedBox(height: 20),
+                const Text(
+                  'Confirmar saída',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                const Text(
+                  'Você tem certeza de que deseja sair?',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.black54,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    TextButton(
+                      onPressed: () {
+                        Navigator.of(context).pop(false);
+                      },
+                      style: TextButton.styleFrom(
+                        foregroundColor: Colors.black,
+                      ),
+                      child: const Text('Cancelar'),
+                    ),
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.of(context).pop(true);
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.redAccent,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      child: const Text(
+                        'Sair',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 

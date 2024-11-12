@@ -53,7 +53,16 @@ class _CameraPageState extends State<CameraPage> {
               _cameraController != null) {
             return Stack(
               children: [
-                CameraPreview(_cameraController!),
+                // FittedBox para preencher toda a tela com a visualização da câmera
+                FittedBox(
+                  fit: BoxFit.fill, // Preenche a tela inteira
+                  child: SizedBox(
+                    width: MediaQuery.of(context).size.width,
+                    height: MediaQuery.of(context).size.height,
+                    child: CameraPreview(_cameraController!),
+                  ),
+                ),
+                // Outros widgets sobrepondo a câmera
                 Positioned(
                   top: 40,
                   left: 16,
