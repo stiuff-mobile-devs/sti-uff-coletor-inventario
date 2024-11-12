@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:stiuffcoletorinventario/app_colors.dart';
-import 'package:stiuffcoletorinventario/app_drawer.dart';
+import 'package:stiuffcoletorinventario/shared/utils/app_colors.dart';
+import 'package:stiuffcoletorinventario/shared/components/app_drawer.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:stiuffcoletorinventario/camera_page.dart';
-import 'package:stiuffcoletorinventario/info_carousel.dart';
-import 'package:stiuffcoletorinventario/inventory_grid.dart';
-import 'package:stiuffcoletorinventario/package_filter_dialog.dart';
-import 'package:stiuffcoletorinventario/package_list.dart';
-import 'package:stiuffcoletorinventario/package_search_bar.dart';
-import 'home_controller.dart';
+import 'package:stiuffcoletorinventario/features/camera/views/camera_page.dart';
+import 'package:stiuffcoletorinventario/shared/components/info_carousel.dart';
+import 'package:stiuffcoletorinventario/features/home/views/inventory_grid.dart';
+import 'package:stiuffcoletorinventario/features/home/views/package_filter_dialog.dart';
+import 'package:stiuffcoletorinventario/features/home/views/package_list.dart';
+import 'package:stiuffcoletorinventario/features/home/views/package_search_bar.dart';
+import '../controllers/home_controller.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});

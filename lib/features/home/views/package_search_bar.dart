@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:stiuffcoletorinventario/app_colors.dart';
+import 'package:stiuffcoletorinventario/shared/utils/app_colors.dart';
 
 class PackageSearchBar extends StatelessWidget {
   final TextEditingController searchController;

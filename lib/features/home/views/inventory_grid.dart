@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:stiuffcoletorinventario/app_colors.dart';
-import 'package:stiuffcoletorinventario/inventory_item.dart';
+import 'package:stiuffcoletorinventario/shared/utils/app_colors.dart';
+import 'package:stiuffcoletorinventario/features/home/models/inventory_item.dart';
 
 class InventoryGrid extends StatefulWidget {
   const InventoryGrid({super.key});

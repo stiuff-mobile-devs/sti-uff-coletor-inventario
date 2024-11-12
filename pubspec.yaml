@@ -65,6 +65,7 @@ flutter:
   assets:
     - assets/icons/barcode.svg
     - assets/icons/small-app-icon.png
+    - assets/icons/app.svg
     - assets/icons/scan-surface.svg
   #   - images/a_dot_ham.jpeg
 

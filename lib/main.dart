@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:stiuffcoletorinventario/about_page.dart';
-import 'home_page.dart';
-import 'settings_page.dart';
-import 'app_colors.dart';
+import 'package:stiuffcoletorinventario/features/about/views/about_page.dart';
+import 'features/home/views/home_page.dart';
+import 'features/settings/views/settings_page.dart';
+import 'shared/utils/app_colors.dart';
 
 void main() {
   runApp(const MyApp());

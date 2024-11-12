@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:stiuffcoletorinventario/item_detail.dart';
-import 'package:stiuffcoletorinventario/package_item.dart';
+import 'package:stiuffcoletorinventario/features/home/models/item.dart';
+import 'package:stiuffcoletorinventario/features/home/models/package_item.dart';
 
 class HomeController {
   final TextEditingController searchController = TextEditingController();

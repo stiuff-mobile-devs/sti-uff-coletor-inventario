@@ -1,14 +1,5 @@
 import 'package:flutter/material.dart';
-
-class Item {
-  final String name;
-  final String description;
-
-  Item({
-    required this.name,
-    required this.description,
-  });
-}
+import 'package:stiuffcoletorinventario/features/home/models/item.dart';
 
 class ItemDetail extends StatelessWidget {
   final Item item;

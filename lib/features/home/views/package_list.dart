@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:stiuffcoletorinventario/package_item.dart';
+import 'package:stiuffcoletorinventario/features/home/models/package_item.dart';
 
 class PackageList extends StatefulWidget {
   final Map<String, List<Package>> groupedPackages;
