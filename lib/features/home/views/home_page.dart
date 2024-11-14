@@ -8,6 +8,7 @@ import 'package:stiuffcoletorinventario/features/home/views/inventory_grid.dart'
 import 'package:stiuffcoletorinventario/features/home/views/package_filter_dialog.dart';
 import 'package:stiuffcoletorinventario/features/home/views/package_list.dart';
 import 'package:stiuffcoletorinventario/features/home/views/package_search_bar.dart';
+import 'package:stiuffcoletorinventario/shared/utils/custom_page_router.dart';
 import '../controllers/home_controller.dart';
 
 class HomePage extends StatefulWidget {
@@ -54,18 +55,19 @@ class _HomePageState extends State<HomePage> {
       ),
       floatingActionButton: FloatingActionButton(
         tooltip: "Leitor de Barras",
-        backgroundColor: AppColors.pastelRedColor,
+        backgroundColor: Colors.red,
         splashColor: AppColors.lightOrangeSplashColor,
         onPressed: () => Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => const CameraPage()),
+          // MaterialPageRoute(builder: (context) => const CameraPage()),
+          CustomPageRoute(page: const CameraPage()),
         ),
         child: SvgPicture.asset(
           'assets/icons/barcode.svg',
           width: 36,
           height: 36,
           colorFilter: const ColorFilter.mode(
-            Colors.black,
+            Colors.white,
             BlendMode.srcIn,
           ),
         ),

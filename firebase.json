@@ -1,1 +1,35 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"coletor-inventario","appId":"1:419572513606:android:a158e2faf3965d58eb0347","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"coletor-inventario","configurations":{"android":"1:419572513606:android:a158e2faf3965d58eb0347","ios":"1:419572513606:ios:78104af55626b003eb0347"}}}}}}
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "coletor-inventario",
+          "appId": "1:419572513606:android:a158e2faf3965d58eb0347",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "coletor-inventario",
+          "configurations": {
+            "android": "1:419572513606:android:a158e2faf3965d58eb0347",
+            "ios": "1:419572513606:ios:78104af55626b003eb0347"
+          }
+        }
+      }
+    }
+  },
+  "functions": [
+    {
+      "source": "functions",
+      "codebase": "default",
+      "ignore": [
+        "node_modules",
+        ".git",
+        "firebase-debug.log",
+        "firebase-debug.*.log",
+        "*.local"
+      ]
+    }
+  ]
+}
