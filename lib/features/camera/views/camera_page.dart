@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_mlkit_barcode_scanning/google_mlkit_barcode_scanning.dart';
+import 'package:stiuffcoletorinventario/shared/utils/barcode_painter.dart';
 
 class CameraPage extends StatefulWidget {
   const CameraPage({super.key});
@@ -14,9 +15,10 @@ class CameraPage extends StatefulWidget {
 class _CameraPageState extends State<CameraPage> {
   CameraController? _cameraController;
   Future<void>? _initializeControllerFuture;
-  // Barcode
   final BarcodeScanner _barcodeScanner = BarcodeScanner();
   bool _isDetecting = false;
+  List<Rect> _barcodeRects = [];
+  Size? _imageSize;
 
   @override
   void initState() {
@@ -35,7 +37,12 @@ class _CameraPageState extends State<CameraPage> {
       );
 
       await _cameraController!.initialize();
-      setState(() {});
+      setState(() {
+        _imageSize = Size(
+          _cameraController!.value.previewSize!.height,
+          _cameraController!.value.previewSize!.width,
+        );
+      });
 
       // Inicia o stream de imagem
       _cameraController!.startImageStream((CameraImage image) {
@@ -43,6 +50,7 @@ class _CameraPageState extends State<CameraPage> {
         _isDetecting = true;
 
         _scanBarcode(image).then((_) {
+          setState(() {}); // Atualiza a UI para desenhar o retângulo
           _isDetecting = false;
         });
       });
@@ -53,17 +61,13 @@ class _CameraPageState extends State<CameraPage> {
 
   Future<void> _scanBarcode(CameraImage image) async {
     try {
-      // Converte a imagem da câmera em uma lista de bytes
       final WriteBuffer allBytes = WriteBuffer();
       for (Plane plane in image.planes) {
         allBytes.putUint8List(plane.bytes);
       }
       final bytes = allBytes.done().buffer.asUint8List();
-
-      // Obtém bytesPerRow do primeiro plano da imagem
       final bytesPerRow = image.planes[0].bytesPerRow;
 
-      // Cria o InputImage para o scanner
       final inputImage = InputImage.fromBytes(
         bytes: bytes,
         metadata: InputImageMetadata(
@@ -79,12 +83,30 @@ class _CameraPageState extends State<CameraPage> {
       // Processa a imagem para detectar códigos de barras
       final barcodes = await _barcodeScanner.processImage(inputImage);
 
-      for (Barcode barcode in barcodes) {
-        debugPrint('Código de barras detectado: ${barcode.rawValue}');
-      }
+      setState(() {
+        _barcodeRects = barcodes.map((barcode) {
+          final rect = barcode.boundingBox;
+          return _scaleRect(rect, _imageSize!, context);
+        }).toList();
+      });
     } catch (e) {
       debugPrint('Erro ao processar imagem: $e');
     }
+  }
+
+  // Função para ajustar o retângulo ao tamanho da tela
+  Rect _scaleRect(Rect rect, Size imageSize, BuildContext context) {
+    final screenSize = MediaQuery.of(context).size;
+
+    double scaleX = screenSize.width / imageSize.width;
+    double scaleY = screenSize.height / imageSize.height;
+
+    return Rect.fromLTRB(
+      rect.left * scaleX,
+      rect.top * scaleY,
+      rect.right * scaleX,
+      rect.bottom * scaleY,
+    );
   }
 
   @override
@@ -112,6 +134,10 @@ class _CameraPageState extends State<CameraPage> {
                     height: MediaQuery.of(context).size.height,
                     child: CameraPreview(_cameraController!),
                   ),
+                ),
+                // Desenha os retângulos de foco
+                CustomPaint(
+                  painter: BarcodePainter(barcodeRects: _barcodeRects),
                 ),
                 Positioned(
                   top: 40,
