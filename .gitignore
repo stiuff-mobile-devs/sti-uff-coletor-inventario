@@ -57,9 +57,15 @@ ios/Runner/GoogleService-Info.plist
 local.properties
 ios/GoogleService-Info.plist
 android/app/google-services.json
-android/app/google-services.json
-android/app/google-services.json
-android/app/google-services.json
 
 # Firebase
 lib/firebase_options.dart
+.firebaserc
+
+# Node
+node_modules/
+*.local
+firebase.json
+
+# Functions
+functions/

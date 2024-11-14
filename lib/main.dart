@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:stiuffcoletorinventario/features/about/views/about_page.dart';
+import 'package:stiuffcoletorinventario/features/camera/views/camera_page.dart';
 import 'package:stiuffcoletorinventario/features/login/view/login_screen.dart';
 import 'features/home/views/home_page.dart';
 import 'features/settings/views/settings_page.dart';
@@ -36,6 +37,7 @@ class MyApp extends StatelessWidget {
         '/home': (context) => const HomePage(),
         '/settings': (context) => const SettingsPage(),
         '/about': (context) => const AboutPage(),
+        '/camera': (context) => const CameraPage(),
       },
     );
   }
