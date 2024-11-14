@@ -60,3 +60,6 @@ android/app/google-services.json
 android/app/google-services.json
 android/app/google-services.json
 android/app/google-services.json
+
+# Firebase
+lib/firebase_options.dart
