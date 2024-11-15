@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_mlkit_barcode_scanning/google_mlkit_barcode_scanning.dart';
+import 'package:stiuffcoletorinventario/features/form/views/form_page.dart';
 import 'package:stiuffcoletorinventario/shared/utils/barcode_painter.dart';
 
 class CameraPage extends StatefulWidget {
@@ -19,6 +20,13 @@ class _CameraPageState extends State<CameraPage> {
   bool _isDetecting = false;
   List<Rect> _barcodeRects = [];
   Size? _imageSize;
+  String? _scannedCode;
+
+  double _buttonBottomPosition = 0;
+  double _buttonOpacity = 0.0;
+
+  // Variável para controlar o acesso ao formulário
+  bool _isInFormPage = false;
 
   @override
   void initState() {
@@ -44,16 +52,19 @@ class _CameraPageState extends State<CameraPage> {
         );
       });
 
-      // Inicia o stream de imagem
-      _cameraController!.startImageStream((CameraImage image) {
-        if (_isDetecting) return;
-        _isDetecting = true;
+      if (!_isInFormPage) {
+        _cameraController!.startImageStream((CameraImage image) {
+          if (_isDetecting || _isInFormPage) return;
+          _isDetecting = true;
 
-        _scanBarcode(image).then((_) {
-          setState(() {}); // Atualiza a UI para desenhar o retângulo
-          _isDetecting = false;
+          _scanBarcode(image).then((_) {
+            setState(() {});
+            _isDetecting = false;
+          });
         });
-      });
+      } else {
+        _cameraController!.stopImageStream();
+      }
     } catch (e) {
       debugPrint('Erro ao inicializar a câmera: $e');
     }
@@ -80,8 +91,19 @@ class _CameraPageState extends State<CameraPage> {
         ),
       );
 
-      // Processa a imagem para detectar códigos de barras
       final barcodes = await _barcodeScanner.processImage(inputImage);
+
+      if (barcodes.isNotEmpty) {
+        setState(() {
+          _scannedCode = barcodes.first.rawValue;
+          _buttonBottomPosition = 50;
+          _buttonOpacity = 1.0;
+        });
+      }
+
+      for (Barcode b in barcodes) {
+        debugPrint("Captura do valor: ${b.rawValue.toString()}");
+      }
 
       setState(() {
         _barcodeRects = barcodes.map((barcode) {
@@ -94,7 +116,6 @@ class _CameraPageState extends State<CameraPage> {
     }
   }
 
-  // Função para ajustar o retângulo ao tamanho da tela
   Rect _scaleRect(Rect rect, Size imageSize, BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
 
@@ -135,7 +156,6 @@ class _CameraPageState extends State<CameraPage> {
                     child: CameraPreview(_cameraController!),
                   ),
                 ),
-                // Desenha os retângulos de foco
                 CustomPaint(
                   painter: BarcodePainter(barcodeRects: _barcodeRects),
                 ),
@@ -161,25 +181,63 @@ class _CameraPageState extends State<CameraPage> {
                     ),
                   ),
                 ),
-                Positioned(
-                  bottom: 40,
-                  left: 0,
-                  right: 0,
-                  child: Center(
-                    child: FloatingActionButton(
-                      backgroundColor: Colors.red,
-                      onPressed: () async {
-                        try {
-                          if (_cameraController != null) {
-                            final image =
-                                await _cameraController!.takePicture();
-                            debugPrint('Imagem capturada: ${image.path}');
-                          }
-                        } catch (e) {
-                          debugPrint(e.toString());
+                AnimatedPositioned(
+                  duration: const Duration(milliseconds: 500),
+                  curve: Curves.easeOut,
+                  bottom: _buttonBottomPosition,
+                  left: MediaQuery.of(context).size.width * 0.15,
+                  right: MediaQuery.of(context).size.width * 0.15,
+                  child: AnimatedOpacity(
+                    duration: const Duration(milliseconds: 500),
+                    opacity: _buttonOpacity,
+                    child: GestureDetector(
+                      onTap: () {
+                        if (_scannedCode != null) {
+                          setState(() {
+                            _isInFormPage = true; // Desativa o scanner
+                          });
+                          Navigator.of(context)
+                              .push(MaterialPageRoute(
+                            builder: (_) => FormPage(
+                              barcode: _scannedCode!,
+                            ),
+                          ))
+                              .then((_) {
+                            setState(() {
+                              _isInFormPage =
+                                  false; // Reativa o scanner ao voltar
+                            });
+                          });
                         }
                       },
-                      child: const Icon(Icons.camera, color: Colors.white),
+                      child: Container(
+                        height: 45,
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFF6A11CB), Color(0xFF2575FC)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(10),
+                          // boxShadow: [
+                          //   BoxShadow(
+                          //     color: Colors.black.withOpacity(0.2),
+                          //     blurRadius: 10,
+                          //     offset: const Offset(0, 5),
+                          //   ),
+                          // ],
+                        ),
+                        child: Center(
+                          child: Text(
+                            'Código: $_scannedCode',
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
                     ),
                   ),
                 ),
