@@ -34,7 +34,43 @@ class InventoryGridState extends State<InventoryGrid> {
     });
   }
 
-  Future<bool?> _showDeleteConfirmationDialog(BuildContext context) {
+  Future<void> _deleteItem(InventoryItem item) async {
+    final inventoryProvider =
+        Provider.of<InventoryProvider>(context, listen: false);
+    await inventoryProvider.removeItem(item);
+
+    final pathList = item.images ?? [];
+    for (var imagePath in pathList) {
+      final file = File(imagePath);
+      if (await file.exists()) {
+        await file.delete();
+      }
+    }
+  }
+
+  Future<bool?> _showDeleteCardConfirmationDialog(
+      BuildContext context, InventoryItem item) {
+    return showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return ConfirmationDialog(
+          onCancel: () {
+            Navigator.of(context).pop(false);
+          },
+          onConfirm: () {
+            Navigator.of(context).pop(true);
+          },
+          title: 'Confirmar Exclusão',
+          message:
+              'Você tem certeza de que deseja excluir este item (#${item.barcode}) do inventário local?',
+          action: 'Apagar Item',
+        );
+      },
+    );
+  }
+
+  Future<bool?> _showDeleteAllConfirmationDialog(BuildContext context) {
     return showDialog<bool>(
       context: context,
       barrierDismissible: false,
@@ -196,34 +232,63 @@ class InventoryGridState extends State<InventoryGrid> {
                             page: ItemDetailsPage(item: item),
                           ));
                         },
-                        child: Card(
-                          color: AppColors.appBarColor,
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  item.name,
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 18,
-                                    color: Colors.black,
+                        child: Stack(
+                          children: [
+                            SizedBox(
+                              width: double.infinity,
+                              child: Card(
+                                color: AppColors.appBarColor,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        item.name,
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 18,
+                                          color: Colors.black,
+                                        ),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        item.description ?? '',
+                                        style: const TextStyle(
+                                          fontSize: 14,
+                                          color: Colors.black,
+                                        ),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ],
                                   ),
-                                  textAlign: TextAlign.center,
                                 ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  item.description ?? '',
-                                  style: const TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.black,
-                                  ),
-                                  textAlign: TextAlign.center,
-                                ),
-                              ],
+                              ),
                             ),
-                          ),
+                            Positioned(
+                              top: 0,
+                              right: 0,
+                              child: IconButton(
+                                icon:
+                                    const Icon(Icons.close, color: Colors.grey),
+                                onPressed: () async {
+                                  bool? shouldDelete =
+                                      await _showDeleteCardConfirmationDialog(
+                                          context, item);
+                                  if (shouldDelete ?? false) {
+                                    _deleteItem(item);
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                            '${item.name} deletado com sucesso!'),
+                                      ),
+                                    );
+                                  }
+                                },
+                              ),
+                            ),
+                          ],
                         ),
                       );
                     }
@@ -248,7 +313,7 @@ class InventoryGridState extends State<InventoryGrid> {
                       child: InkWell(
                         onTap: () async {
                           bool? shouldDeleteAll =
-                              await _showDeleteConfirmationDialog(context);
+                              await _showDeleteAllConfirmationDialog(context);
                           if (shouldDeleteAll ?? false) {
                             _clearInventory();
                             ScaffoldMessenger.of(context).showSnackBar(

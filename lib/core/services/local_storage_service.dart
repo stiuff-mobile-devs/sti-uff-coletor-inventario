@@ -31,6 +31,21 @@ class DatabaseHelper {
     });
   }
 
+  Future<void> removeItem(InventoryItem item) async {
+    final db = await database;
+
+    try {
+      await db.delete(
+        'inventory',
+        where: 'barcode = ?',
+        whereArgs: [item.barcode],
+      );
+      debugPrint('Item de inventário deletado com sucesso!');
+    } catch (e) {
+      debugPrint('Erro ao deletar item: $e');
+    }
+  }
+
   static Future<void> insertInventoryItem(InventoryItem item) async {
     final db = await database;
 

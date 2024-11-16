@@ -48,6 +48,23 @@ class InventoryProvider with ChangeNotifier {
     return 1;
   }
 
+  Future<void> removeItem(InventoryItem item) async {
+    final localStorageService = DatabaseHelper();
+
+    try {
+      await localStorageService.removeItem(item);
+
+      _items
+          .removeWhere((existingItem) => existingItem.barcode == item.barcode);
+
+      notifyListeners();
+
+      debugPrint('Item de inventário removido com sucesso!');
+    } catch (e) {
+      debugPrint('Erro ao remover item: $e');
+    }
+  }
+
   Future<int> updateItem(InventoryItem item) async {
     final localStorageService = DatabaseHelper();
     try {
