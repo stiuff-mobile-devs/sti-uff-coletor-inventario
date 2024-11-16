@@ -1,19 +1,22 @@
-// ignore_for_file: use_build_context_synchronously, prefer_final_fields
+// ignore_for_file: use_build_context_synchronously, prefer_final_fields, no_leading_underscores_for_local_identifiers
 
 import 'dart:io';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:stiuffcoletorinventario/features/form/models/inventory_item.dart';
+import 'package:provider/provider.dart';
+import 'package:stiuffcoletorinventario/core/models/inventory_item.dart';
+import 'package:stiuffcoletorinventario/core/providers/inventory_provider.dart';
 import 'package:stiuffcoletorinventario/features/home/models/package_item.dart';
 import 'package:stiuffcoletorinventario/shared/utils/app_colors.dart';
 
 class FormPage extends StatefulWidget {
-  final String barcode;
+  final String? barcode;
 
-  const FormPage({super.key, required this.barcode});
+  const FormPage({super.key, this.barcode});
 
   @override
   State<FormPage> createState() => _FormPageState();
@@ -22,13 +25,23 @@ class FormPage extends StatefulWidget {
 class _FormPageState extends State<FormPage> {
   final _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
-  String? _name, _description, _packageId, _location, _observations;
+  String? _name, _description, _location, _observations, _userEntryBarcode;
+  String _packageId = '0';
   List<String> _images = [];
   String? _geolocation;
   DateTime _currentDate = DateTime.now();
   final ImagePicker _picker = ImagePicker();
 
+  bool _hasBarcodeError = false;
+
   List<Package> _existingPackages = [
+    Package(
+        id: '0',
+        name: 'Pacote Default',
+        description: 'Grupo genérico',
+        dateSent: DateTime.now(),
+        tags: [],
+        items: []),
     Package(
         id: '1',
         name: 'Pacote A',
@@ -122,16 +135,20 @@ class _FormPageState extends State<FormPage> {
   @override
   Widget build(BuildContext context) {
     InputDecoration inputDecoration(
-        {required String label, bool readOnly = false}) {
+        {required String label, bool readOnly = false, bool hasError = false}) {
       return InputDecoration(
         labelText: label,
-        labelStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+        labelStyle: const TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.w500,
+          color: AppColors.greyTextColor,
+        ),
         filled: true,
         fillColor: readOnly ? Colors.grey[200] : Colors.white,
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(5),
           borderSide: BorderSide(
-            color: readOnly ? Colors.grey[400]! : AppColors.greyTextColor,
+            color: hasError ? Colors.red : AppColors.greyTextColor,
             width: 1.0,
           ),
         ),
@@ -294,9 +311,48 @@ class _FormPageState extends State<FormPage> {
             padding: const EdgeInsets.symmetric(vertical: 16),
             children: [
               TextFormField(
-                  initialValue: widget.barcode,
-                  decoration: inputDecoration(label: 'Código', readOnly: true),
-                  readOnly: true),
+                initialValue: widget.barcode ?? '',
+                decoration: inputDecoration(
+                  label: 'Código',
+                  readOnly: widget.barcode != null,
+                  hasError: _hasBarcodeError,
+                ),
+                readOnly: widget.barcode != null,
+                onChanged: widget.barcode == null
+                    ? (value) {
+                        _userEntryBarcode = value;
+                        setState(() {
+                          _hasBarcodeError = value.isEmpty;
+                        });
+                      }
+                    : null,
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                ],
+                keyboardType: TextInputType.number,
+                // IssueFix: Doesn't work for whatever reason.
+                // validator: (value) {
+                //   if (widget.barcode == null || widget.barcode!.isEmpty) {
+                //     return (_userEntryBarcode == null ||
+                //             _userEntryBarcode!.isEmpty)
+                //         ? 'O código não pode estar vazio'
+                //         : null;
+                //   }
+                //   return null;
+                // },
+              ),
+              if (_hasBarcodeError)
+                const Padding(
+                  padding: EdgeInsets.only(top: 8.0),
+                  child: Padding(
+                    padding: EdgeInsets.only(left: 13.5),
+                    child: Text(
+                      'O campo do código é obrigatório.',
+                      style: TextStyle(
+                          color: Color.fromARGB(255, 179, 12, 1), fontSize: 12),
+                    ),
+                  ),
+                ),
               const SizedBox(height: 16),
               TextFormField(
                 cursorColor: AppColors.orangeSelectionColor,
@@ -335,6 +391,7 @@ class _FormPageState extends State<FormPage> {
                           color: Colors.grey.withOpacity(0.5), width: 1),
                     ),
                     child: DropdownButton<String>(
+                      padding: const EdgeInsets.only(left: 8.0),
                       value: _packageId,
                       hint: const Text(
                         'Selecione um pacote',
@@ -353,7 +410,7 @@ class _FormPageState extends State<FormPage> {
                       ],
                       onChanged: (value) {
                         setState(() {
-                          _packageId = value;
+                          _packageId = value ?? '0';
                         });
                       },
                       underline: const SizedBox(),
@@ -400,11 +457,22 @@ class _FormPageState extends State<FormPage> {
               ),
               const SizedBox(height: 16),
               ElevatedButton(
-                onPressed: () {
+                onPressed: () async {
                   if (_formKey.currentState!.validate()) {
+                    // IssueFix: Validator on TextFormController doesn't work properly.
+                    if ((widget.barcode == null || widget.barcode!.isEmpty) &&
+                        (_userEntryBarcode == null ||
+                            _userEntryBarcode!.isEmpty)) {
+                      setState(() {
+                        _hasBarcodeError = true;
+                      });
+                      return;
+                    }
+                    final inventoryProvider =
+                        Provider.of<InventoryProvider>(context, listen: false);
                     // Criando um NOVO item de inventário
                     InventoryItem newItem = InventoryItem(
-                      barcode: widget.barcode,
+                      barcode: widget.barcode ?? _userEntryBarcode ?? '',
                       name: _name ?? '',
                       description: _description,
                       packageId: _packageId,
@@ -414,8 +482,11 @@ class _FormPageState extends State<FormPage> {
                       observations: _observations,
                       date: DateTime.now(),
                     );
+                    // Salvando o item localmente
+                    await inventoryProvider.addItem(newItem);
                     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
                         content: Text('Dados catalogados com sucesso!')));
+                    Navigator.pop(context);
                   }
                 },
                 style: ElevatedButton.styleFrom(

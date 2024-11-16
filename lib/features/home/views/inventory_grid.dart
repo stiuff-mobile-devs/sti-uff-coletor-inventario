@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:stiuffcoletorinventario/core/models/inventory_item.dart';
+import 'package:stiuffcoletorinventario/core/providers/inventory_provider.dart';
+import 'package:stiuffcoletorinventario/features/form/views/form_page.dart';
 import 'package:stiuffcoletorinventario/shared/utils/app_colors.dart';
-import 'package:stiuffcoletorinventario/features/home/models/inventory_item.dart';
+import 'package:stiuffcoletorinventario/shared/utils/custom_page_router.dart';
 
 class InventoryGrid extends StatefulWidget {
   const InventoryGrid({super.key});
@@ -10,20 +14,13 @@ class InventoryGrid extends StatefulWidget {
 }
 
 class InventoryGridState extends State<InventoryGrid> {
-  final List<InventoryItem> items = List.generate(
-    20,
-    (index) => InventoryItem(
-      name: 'Item ${index + 1}',
-      description: 'Descrição do Item ${index + 1}',
-    ),
-  );
-
   final PageController _pageController = PageController();
   int _currentPage = 0;
 
   @override
   void initState() {
     super.initState();
+    _loadInventory();
     _pageController.addListener(() {
       setState(() {
         _currentPage = _pageController.page!.round();
@@ -31,11 +28,34 @@ class InventoryGridState extends State<InventoryGrid> {
     });
   }
 
+  Future<void> _loadInventory() async {
+    final inventoryProvider =
+        Provider.of<InventoryProvider>(context, listen: false);
+    await inventoryProvider.loadItems();
+  }
+
   @override
   Widget build(BuildContext context) {
+    final inventoryProvider = Provider.of<InventoryProvider>(context);
+    final items = inventoryProvider.items;
+
     final List<List<InventoryItem>> pages = [];
-    for (int i = 0; i < items.length; i += 9) {
-      pages.add(items.sublist(i, i + 9 > items.length ? items.length : i + 9));
+    int itemCount = items.length;
+
+    List<InventoryItem> firstPageItems = [
+          InventoryItem(
+            name: 'Adicionar Item',
+            description: '',
+            barcode: '',
+            location: '',
+            date: DateTime.now(),
+          ),
+        ] +
+        items.take(8).toList();
+    pages.add(firstPageItems);
+
+    for (int i = 8; i < itemCount; i += 9) {
+      pages.add(items.sublist(i, i + 9 > itemCount ? itemCount : i + 9));
     }
 
     return Container(
@@ -71,36 +91,57 @@ class InventoryGridState extends State<InventoryGrid> {
                   ),
                   itemCount: pages[pageIndex].length,
                   itemBuilder: (context, index) {
-                    final item = pages[pageIndex][index];
-                    return Card(
-                      color: AppColors.appBarColor,
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              item.name,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 18,
-                                color: Colors.black,
-                              ),
-                              textAlign: TextAlign.center,
+                    if (pageIndex == 0 && index == 0) {
+                      return GestureDetector(
+                        onTap: () {
+                          Navigator.of(context).push(CustomPageRoute(
+                            page: const FormPage(),
+                          ));
+                        },
+                        child: const Card(
+                          color: AppColors.appBarColor,
+                          child: Padding(
+                            padding: EdgeInsets.all(8.0),
+                            child: Icon(
+                              Icons.add,
+                              size: 40,
+                              color: Colors.black,
                             ),
-                            const SizedBox(height: 8),
-                            Text(
-                              item.description,
-                              style: const TextStyle(
-                                fontSize: 14,
-                                color: Colors.black,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ],
+                          ),
                         ),
-                      ),
-                    );
+                      );
+                    } else {
+                      final item = pages[pageIndex][index];
+                      return Card(
+                        color: AppColors.appBarColor,
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                item.name,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 18,
+                                  color: Colors.black,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                item.description ?? '',
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.black,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    }
                   },
                 );
               },

@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:intl/intl.dart';
 
 class InventoryItem {
@@ -30,7 +31,7 @@ class InventoryItem {
       'description': description,
       'packageId': packageId,
       'location': location,
-      'images': images,
+      'images': images?.join(','),
       'geolocation': geolocation,
       'observations': observations,
       'date': DateFormat('yyyy-MM-dd').format(date),
@@ -44,11 +45,17 @@ class InventoryItem {
       description: map['description'],
       packageId: map['packageId'],
       location: map['location'] ?? '',
-      images: List<String>.from(map['images'] ?? []),
+      images: map['images'] != null ? map['images'].split(',') : [],
       geolocation: map['geolocation'],
       observations: map['observations'],
       date: DateFormat('yyyy-MM-dd')
           .parse(map['date'] ?? DateTime.now().toString()),
     );
+  }
+
+  String toJson() => json.encode(toMap());
+
+  factory InventoryItem.fromJson(String source) {
+    return InventoryItem.fromMap(json.decode(source));
   }
 }

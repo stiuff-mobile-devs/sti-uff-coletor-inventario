@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:provider/provider.dart';
+import 'package:stiuffcoletorinventario/core/providers/inventory_provider.dart';
 import 'package:stiuffcoletorinventario/features/about/views/about_page.dart';
 import 'package:stiuffcoletorinventario/features/camera/views/camera_page.dart';
 import 'package:stiuffcoletorinventario/features/login/view/login_screen.dart';
@@ -10,7 +12,12 @@ import 'shared/utils/app_colors.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
-  runApp(const MyApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => InventoryProvider(),
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
