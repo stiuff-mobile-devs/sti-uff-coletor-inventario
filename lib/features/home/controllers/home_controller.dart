@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:stiuffcoletorinventario/features/home/models/item.dart';
 import 'package:stiuffcoletorinventario/features/home/models/package_item.dart';
+import 'package:stiuffcoletorinventario/core/models/inventory_item.dart';
 
 class HomeController {
   final TextEditingController searchController = TextEditingController();
@@ -57,8 +57,20 @@ class HomeController {
           dateSent: DateTime(2024, 10, 10),
           tags: ['PV', 'RE', 'STI'],
           items: [
-            Item(name: 'Item 1', description: 'Descrição do Item 1'),
-            Item(name: 'Item 2', description: 'Descrição do Item 2'),
+            InventoryItem(
+              name: 'Item 1',
+              description: 'Descrição do Item 1',
+              location: '',
+              barcode: '',
+              date: DateTime.now(),
+            ),
+            InventoryItem(
+              name: 'Item 2',
+              description: 'Descrição do Item 2',
+              location: '',
+              barcode: '',
+              date: DateTime.now(),
+            ),
           ],
         ),
         Package(
@@ -68,8 +80,20 @@ class HomeController {
           dateSent: DateTime(2024, 10, 11),
           tags: ['HUAP', 'VE', 'DCC'],
           items: [
-            Item(name: 'Item 1', description: 'Descrição do Item 1'),
-            Item(name: 'Item 2', description: 'Descrição do Item 2'),
+            InventoryItem(
+              name: 'Item 1',
+              description: 'Descrição do Item 1',
+              location: '',
+              barcode: '',
+              date: DateTime.now(),
+            ),
+            InventoryItem(
+              name: 'Item 2',
+              description: 'Descrição do Item 2',
+              location: '',
+              barcode: '',
+              date: DateTime.now(),
+            ),
           ],
         ),
       ],
@@ -81,8 +105,20 @@ class HomeController {
           dateSent: DateTime(2024, 01, 10),
           tags: ['PV', 'RE'],
           items: [
-            Item(name: 'Item 1', description: 'Descrição do Item 1'),
-            Item(name: 'Item 2', description: 'Descrição do Item 2'),
+            InventoryItem(
+              name: 'Item 1',
+              description: 'Descrição do Item 1',
+              location: '',
+              barcode: '',
+              date: DateTime.now(),
+            ),
+            InventoryItem(
+              name: 'Item 2',
+              description: 'Descrição do Item 2',
+              location: '',
+              barcode: '',
+              date: DateTime.now(),
+            ),
           ],
         ),
         Package(
@@ -92,8 +128,20 @@ class HomeController {
           dateSent: DateTime(2024, 01, 11),
           tags: ['HUAP', 'VE'],
           items: [
-            Item(name: 'Item 1', description: 'Descrição do Item 1'),
-            Item(name: 'Item 2', description: 'Descrição do Item 2'),
+            InventoryItem(
+              name: 'Item 1',
+              description: 'Descrição do Item 1',
+              location: '',
+              barcode: '',
+              date: DateTime.now(),
+            ),
+            InventoryItem(
+              name: 'Item 2',
+              description: 'Descrição do Item 2',
+              location: '',
+              barcode: '',
+              date: DateTime.now(),
+            ),
           ],
         ),
       ],

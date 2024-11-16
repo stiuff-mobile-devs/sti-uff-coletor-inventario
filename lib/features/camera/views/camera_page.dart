@@ -5,6 +5,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_mlkit_barcode_scanning/google_mlkit_barcode_scanning.dart';
 import 'package:stiuffcoletorinventario/features/form/views/form_page.dart';
 import 'package:stiuffcoletorinventario/shared/utils/barcode_painter.dart';
+import 'package:stiuffcoletorinventario/shared/utils/custom_page_router.dart';
 
 class CameraPage extends StatefulWidget {
   const CameraPage({super.key});
@@ -197,11 +198,10 @@ class _CameraPageState extends State<CameraPage> {
                             _isInFormPage = true; // Desativa o scanner
                           });
                           Navigator.of(context)
-                              .push(MaterialPageRoute(
-                            builder: (_) => FormPage(
-                              barcode: _scannedCode!,
-                            ),
-                          ))
+                              .push(CustomPageRoute(
+                                  page: FormPage(
+                            barcode: _scannedCode!,
+                          )))
                               .then((_) {
                             setState(() {
                               _isInFormPage =

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:stiuffcoletorinventario/features/home/models/item.dart';
 import 'package:stiuffcoletorinventario/features/home/views/item_detail.dart';
+import 'package:stiuffcoletorinventario/core/models/inventory_item.dart';
 
 class Package {
   final String id;
@@ -8,7 +8,7 @@ class Package {
   final String description;
   final DateTime dateSent;
   final List<String> tags;
-  final List<Item> items;
+  final List<InventoryItem> items;
 
   Package({
     required this.id,
