@@ -1,6 +1,5 @@
 // ignore_for_file: use_build_context_synchronously, prefer_final_fields, no_leading_underscores_for_local_identifiers
 
-import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
@@ -11,6 +10,7 @@ import 'package:provider/provider.dart';
 import 'package:stiuffcoletorinventario/core/models/inventory_item.dart';
 import 'package:stiuffcoletorinventario/core/providers/inventory_provider.dart';
 import 'package:stiuffcoletorinventario/features/home/models/package_item.dart';
+import 'package:stiuffcoletorinventario/shared/components/image_item.dart';
 import 'package:stiuffcoletorinventario/shared/utils/app_colors.dart';
 
 class FormPage extends StatefulWidget {
@@ -31,6 +31,9 @@ class _FormPageState extends State<FormPage> {
   String? _geolocation;
   DateTime _currentDate = DateTime.now();
   final ImagePicker _picker = ImagePicker();
+
+  final TextEditingController _codigoController = TextEditingController();
+  final TextEditingController _observacoesController = TextEditingController();
 
   bool _hasBarcodeError = false;
 
@@ -133,6 +136,12 @@ class _FormPageState extends State<FormPage> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    _codigoController.text = widget.barcode ?? '';
+  }
+
+  @override
   Widget build(BuildContext context) {
     InputDecoration inputDecoration(
         {required String label, bool readOnly = false, bool hasError = false}) {
@@ -173,57 +182,6 @@ class _FormPageState extends State<FormPage> {
           borderSide: const BorderSide(color: Colors.red, width: 1.0),
         ),
       );
-    }
-
-    Widget _imageItem(int index) {
-      if (index < _images.length) {
-        return Padding(
-          padding: const EdgeInsets.only(right: 8.0),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: Stack(
-              clipBehavior: Clip.none,
-              children: [
-                Image.file(
-                  File(_images[index]),
-                  width: MediaQuery.of(context).size.width / 3 - 16,
-                  fit: BoxFit.cover,
-                ),
-                Positioned(
-                  top: -5,
-                  right: -5,
-                  child: IconButton(
-                    icon: const Icon(Icons.close, color: Colors.red),
-                    onPressed: () {
-                      setState(() {
-                        _images.removeAt(index);
-                      });
-                    },
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      } else {
-        return Padding(
-          padding: const EdgeInsets.only(right: 8.0),
-          child: Container(
-            width: MediaQuery.of(context).size.width / 3 - 16,
-            height: 80,
-            decoration: BoxDecoration(
-                color: Colors.grey[300],
-                borderRadius: BorderRadius.circular(10)),
-            child: IconButton(
-              onPressed: _addImage,
-              icon: const Icon(Icons.camera_alt, color: Colors.white, size: 32),
-              tooltip: 'Adicionar imagem',
-              splashColor: Colors.transparent,
-              highlightColor: Colors.transparent,
-            ),
-          ),
-        );
-      }
     }
 
     Widget _geolocationInfo() {
@@ -311,35 +269,22 @@ class _FormPageState extends State<FormPage> {
             padding: const EdgeInsets.symmetric(vertical: 16),
             children: [
               TextFormField(
-                initialValue: widget.barcode ?? '',
+                cursorColor: AppColors.orangeSelectionColor,
+                controller: _codigoController,
+                readOnly: widget.barcode != null,
                 decoration: inputDecoration(
                   label: 'Código',
                   readOnly: widget.barcode != null,
                   hasError: _hasBarcodeError,
                 ),
-                readOnly: widget.barcode != null,
-                onChanged: widget.barcode == null
-                    ? (value) {
-                        _userEntryBarcode = value;
-                        setState(() {
-                          _hasBarcodeError = value.isEmpty;
-                        });
-                      }
-                    : null,
-                inputFormatters: [
-                  FilteringTextInputFormatter.digitsOnly,
-                ],
+                onChanged: (value) {
+                  _userEntryBarcode = value;
+                  setState(() {
+                    _hasBarcodeError = value.isEmpty;
+                  });
+                },
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                 keyboardType: TextInputType.number,
-                // IssueFix: Doesn't work for whatever reason.
-                // validator: (value) {
-                //   if (widget.barcode == null || widget.barcode!.isEmpty) {
-                //     return (_userEntryBarcode == null ||
-                //             _userEntryBarcode!.isEmpty)
-                //         ? 'O código não pode estar vazio'
-                //         : null;
-                //   }
-                //   return null;
-                // },
               ),
               if (_hasBarcodeError)
                 const Padding(
@@ -353,6 +298,70 @@ class _FormPageState extends State<FormPage> {
                     ),
                   ),
                 ),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(8.0),
+                decoration: BoxDecoration(
+                  color: AppColors.orangeSelectionColor,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                        color: Colors.black.withOpacity(0.2),
+                        offset: const Offset(0, 4),
+                        blurRadius: 4)
+                  ],
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    const Text(
+                      'Pacote: ',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      height: 32,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(5),
+                      ),
+                      child: DropdownButton<String>(
+                        padding: const EdgeInsets.only(left: 8.0),
+                        value: _packageId,
+                        hint: const Text(
+                          'Selecione um pacote',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                        items: [
+                          ..._existingPackages.map((package) {
+                            return DropdownMenuItem<String>(
+                              value: package.id,
+                              child: Text(
+                                package.name,
+                                style: const TextStyle(fontSize: 16),
+                              ),
+                            );
+                          }),
+                        ],
+                        onChanged: (value) {
+                          setState(() {
+                            _packageId = value ?? '0';
+                          });
+                        },
+                        underline: const SizedBox(),
+                        icon: const Icon(Icons.arrow_drop_down,
+                            color: Colors.black54),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
               const SizedBox(height: 16),
               TextFormField(
                 cursorColor: AppColors.orangeSelectionColor,
@@ -370,63 +379,24 @@ class _FormPageState extends State<FormPage> {
                 onChanged: (value) => _description = value,
               ),
               const SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  const Text(
-                    'Pacote: ',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.black87,
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(
-                          color: Colors.grey.withOpacity(0.5), width: 1),
-                    ),
-                    child: DropdownButton<String>(
-                      padding: const EdgeInsets.only(left: 8.0),
-                      value: _packageId,
-                      hint: const Text(
-                        'Selecione um pacote',
-                        style: TextStyle(color: Colors.black54),
-                      ),
-                      items: [
-                        ..._existingPackages.map((package) {
-                          return DropdownMenuItem<String>(
-                            value: package.id,
-                            child: Text(
-                              package.name,
-                              style: const TextStyle(fontSize: 16),
-                            ),
-                          );
-                        }),
-                      ],
-                      onChanged: (value) {
-                        setState(() {
-                          _packageId = value ?? '0';
-                        });
-                      },
-                      underline: const SizedBox(),
-                      icon: const Icon(Icons.arrow_drop_down,
-                          color: Colors.black54),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
               SizedBox(
                 height: 100,
                 child: ListView.builder(
                   scrollDirection: Axis.horizontal,
                   itemCount: 3,
-                  itemBuilder: (context, index) => _imageItem(index),
+                  itemBuilder: (context, index) {
+                    return ImageItem(
+                      imagePath: index < _images.length ? _images[index] : null,
+                      onRemove: index < _images.length
+                          ? () {
+                              setState(() {
+                                _images.removeAt(index);
+                              });
+                            }
+                          : null,
+                      onAddImage: index >= _images.length ? _addImage : null,
+                    );
+                  },
                 ),
               ),
               const SizedBox(height: 16),
@@ -444,6 +414,7 @@ class _FormPageState extends State<FormPage> {
               const Divider(),
               TextFormField(
                 cursorColor: AppColors.orangeSelectionColor,
+                controller: _observacoesController,
                 decoration: inputDecoration(label: 'Observações'),
                 maxLines: 3,
                 onChanged: (value) => _observations = value,
@@ -483,9 +454,15 @@ class _FormPageState extends State<FormPage> {
                       date: DateTime.now(),
                     );
                     // Salvando o item localmente
-                    await inventoryProvider.addItem(newItem);
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                        content: Text('Dados catalogados com sucesso!')));
+                    int response = await inventoryProvider.addItem(newItem);
+                    if (response == 0) {
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                          content: Text('Dados catalogados com sucesso!')));
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                          content:
+                              Text('Não foi possível realizar a operação.')));
+                    }
                     Navigator.pop(context);
                   }
                 },

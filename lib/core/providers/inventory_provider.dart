@@ -13,11 +13,61 @@ class InventoryProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> addItem(InventoryItem item) async {
+  Future<int> addItem(InventoryItem item) async {
     final localStorageService = DatabaseHelper();
-    await localStorageService.saveInventoryItemLocally(item);
-    _items.add(item);
-    notifyListeners();
+
+    final existingItems = await localStorageService.getAllItems();
+    final existingItem = existingItems.firstWhere(
+      (existingItem) => existingItem.barcode == item.barcode,
+      orElse: () => InventoryItem(
+        barcode: "-1",
+        name: '',
+        description: '',
+        packageId: '',
+        location: '',
+        geolocation: '',
+        observations: '',
+        date: DateTime.now(),
+        images: [],
+      ),
+    );
+
+    if (existingItem.barcode != "-1") {
+      debugPrint('Erro: Já existe um item com o mesmo barcode.');
+      return 1;
+    }
+
+    try {
+      await localStorageService.saveInventoryItemLocally(item);
+      _items.add(item);
+      notifyListeners();
+      return 0;
+    } catch (e) {
+      debugPrint('Erro ao adicionar item: $e');
+    }
+    return 1;
+  }
+
+  Future<int> updateItem(InventoryItem item) async {
+    final localStorageService = DatabaseHelper();
+    try {
+      await localStorageService.updateInventoryItem(item);
+
+      final index = _items
+          .indexWhere((existingItem) => existingItem.barcode == item.barcode);
+      if (index != -1) {
+        _items[index] = item;
+        notifyListeners();
+        return 0;
+      } else {
+        debugPrint(
+            'Item com barcode ${item.barcode} não encontrado na lista local.');
+      }
+    } catch (e) {
+      debugPrint('Erro ao atualizar item: $e');
+      return 1;
+    }
+    return 1;
   }
 
   Future<void> clearItems() async {

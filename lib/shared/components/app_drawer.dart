@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:stiuffcoletorinventario/features/about/views/about_page.dart';
 import 'package:stiuffcoletorinventario/features/camera/views/camera_page.dart';
 import 'package:stiuffcoletorinventario/features/login/controller/auth_controller.dart';
+import 'package:stiuffcoletorinventario/shared/components/confirmation_dialog.dart';
 import 'package:stiuffcoletorinventario/shared/utils/app_colors.dart';
 import 'package:stiuffcoletorinventario/shared/utils/custom_page_router.dart';
 import 'package:stiuffcoletorinventario/features/home/views/home_page.dart';
@@ -93,68 +94,16 @@ class AppDrawer extends StatelessWidget {
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
-        return Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12.0),
-          ),
-          elevation: 4,
-          backgroundColor: Colors.white,
-          child: Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const SizedBox(height: 20),
-                const Text(
-                  'Confirmar saída',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                  ),
-                ),
-                const SizedBox(height: 10),
-                const Text(
-                  'Você tem certeza de que deseja sair?',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.black54,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 20),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    TextButton(
-                      onPressed: () {
-                        Navigator.of(context).pop(false);
-                      },
-                      style: TextButton.styleFrom(
-                        foregroundColor: Colors.black,
-                      ),
-                      child: const Text('Cancelar'),
-                    ),
-                    ElevatedButton(
-                      onPressed: () {
-                        Navigator.of(context).pop(true);
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.redAccent,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      child: const Text(
-                        'Sair',
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
+        return ConfirmationDialog(
+          onCancel: () {
+            Navigator.of(context).pop(false);
+          },
+          onConfirm: () {
+            Navigator.of(context).pop(true);
+          },
+          title: 'Confirmar saída',
+          message: 'Você tem certeza de que deseja sair?',
+          action: 'Sair',
         );
       },
     );

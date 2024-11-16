@@ -17,8 +17,7 @@ class DatabaseHelper {
     return await openDatabase(path, version: 1, onCreate: (db, version) async {
       await db.execute('''
         CREATE TABLE inventory (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          barcode TEXT,
+          barcode INTEGER PRIMARY KEY,
           name TEXT,
           description TEXT,
           packageId TEXT,
@@ -34,11 +33,37 @@ class DatabaseHelper {
 
   static Future<void> insertInventoryItem(InventoryItem item) async {
     final db = await database;
+
+    final List<Map<String, dynamic>> existingItems = await db.query(
+      'inventory',
+      where: 'barcode = ?',
+      whereArgs: [item.barcode],
+    );
+
+    if (existingItems.isNotEmpty) {
+      throw Exception('Um item com este barcode já existe.');
+    }
+
     await db.insert(
       'inventory',
       item.toMap(),
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
+  }
+
+  Future<void> updateInventoryItem(InventoryItem item) async {
+    final db = await database;
+    try {
+      await db.update(
+        'inventory',
+        item.toMap(),
+        where: 'barcode = ?',
+        whereArgs: [item.barcode],
+      );
+      debugPrint('Item de inventário atualizado com sucesso!');
+    } catch (e) {
+      debugPrint('Erro ao atualizar item: $e');
+    }
   }
 
   Future<void> saveInventoryItemLocally(InventoryItem item) async {
