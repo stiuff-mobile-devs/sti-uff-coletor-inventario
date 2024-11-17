@@ -5,7 +5,7 @@ class InventoryItem {
   final String barcode;
   final String name;
   final String? description;
-  final String? packageId;
+  late String? packageId;
   final String location;
   final List<String>? images;
   final String? geolocation;
