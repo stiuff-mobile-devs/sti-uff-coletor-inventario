@@ -1,11 +1,70 @@
 import 'package:flutter/material.dart';
 import 'package:stiuffcoletorinventario/core/models/inventory_item.dart';
+import 'package:stiuffcoletorinventario/core/models/package_model.dart';
 import 'package:stiuffcoletorinventario/core/services/local_storage_service.dart';
 
 class InventoryProvider with ChangeNotifier {
   List<InventoryItem> _items = [];
+  List<PackageModel> _packages = [];
 
   List<InventoryItem> get items => _items;
+  List<PackageModel> get packages => _packages;
+
+  Future<void> loadPackages() async {
+    final localStorageService = DatabaseHelper();
+    _packages = await localStorageService.getAllPackages();
+    notifyListeners();
+  }
+
+  Future<int> addPackage(PackageModel package) async {
+    final localStorageService = DatabaseHelper();
+
+    final existingPackages = await localStorageService.getAllPackages();
+    final existingPackage = existingPackages.firstWhere(
+      (existingPackage) => existingPackage.id == package.id,
+      orElse: () => PackageModel(id: -1, name: '', tags: []),
+    );
+
+    if (existingPackage.id != -1) {
+      debugPrint('Erro: Já existe um pacote com o mesmo id.');
+      return 1;
+    }
+
+    try {
+      await localStorageService.insertPackage(package);
+      _packages.add(package);
+      notifyListeners();
+      return 0;
+    } catch (e) {
+      debugPrint('Erro ao adicionar pacote: $e');
+      return 1;
+    }
+  }
+
+  Future<void> removePackage(int packageId) async {
+    final localStorageService = DatabaseHelper();
+
+    try {
+      // Remover o pacote do banco de dados
+      await localStorageService.removePackage(
+          packageId); // Método no DatabaseHelper para remover pacotes
+
+      // Atualizar os itens relacionados ao pacote, colocando como pacote default (ID = 0)
+      for (var item in _items) {
+        if (int.parse(item.packageId ?? '0') == packageId) {
+          item.packageId = '0'; // Altera os itens para o pacote default
+        }
+      }
+
+      // Remover o pacote da lista local
+      _packages.removeWhere((package) => package.id == packageId);
+
+      notifyListeners();
+      debugPrint('Pacote removido com sucesso!');
+    } catch (e) {
+      debugPrint('Erro ao remover pacote: $e');
+    }
+  }
 
   Future<void> loadItems() async {
     final localStorageService = DatabaseHelper();

@@ -1,10 +1,11 @@
-// ignore_for_file: use_build_context_synchronously
+// ignore_for_file: use_build_context_synchronously, unnecessary_null_comparison
 
 import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:stiuffcoletorinventario/core/models/inventory_item.dart';
+import 'package:stiuffcoletorinventario/core/models/package_model.dart';
 import 'package:stiuffcoletorinventario/core/providers/inventory_provider.dart';
 import 'package:stiuffcoletorinventario/features/details/views/item_details_page.dart';
 import 'package:stiuffcoletorinventario/features/form/views/form_page.dart';
@@ -23,29 +24,18 @@ class InventoryGridState extends State<InventoryGrid> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
 
+  PackageModel? selectedPackage;
+
   @override
   void initState() {
     super.initState();
     _loadInventory();
+    _loadPackages();
     _pageController.addListener(() {
       setState(() {
         _currentPage = _pageController.page!.round();
       });
     });
-  }
-
-  Future<void> _deleteItem(InventoryItem item) async {
-    final inventoryProvider =
-        Provider.of<InventoryProvider>(context, listen: false);
-    await inventoryProvider.removeItem(item);
-
-    final pathList = item.images ?? [];
-    for (var imagePath in pathList) {
-      final file = File(imagePath);
-      if (await file.exists()) {
-        await file.delete();
-      }
-    }
   }
 
   Future<bool?> _showDeleteCardConfirmationDialog(
@@ -113,10 +103,30 @@ class InventoryGridState extends State<InventoryGrid> {
     );
   }
 
+  Future<void> _loadPackages() async {
+    final inventoryProvider =
+        Provider.of<InventoryProvider>(context, listen: false);
+    await inventoryProvider.loadPackages();
+  }
+
   Future<void> _loadInventory() async {
     final inventoryProvider =
         Provider.of<InventoryProvider>(context, listen: false);
     await inventoryProvider.loadItems();
+  }
+
+  Future<void> _deleteItem(InventoryItem item) async {
+    final inventoryProvider =
+        Provider.of<InventoryProvider>(context, listen: false);
+    await inventoryProvider.removeItem(item);
+
+    final pathList = item.images ?? [];
+    for (var imagePath in pathList) {
+      final file = File(imagePath);
+      if (await file.exists()) {
+        await file.delete();
+      }
+    }
   }
 
   Future<void> _clearInventory() async {
@@ -150,10 +160,23 @@ class InventoryGridState extends State<InventoryGrid> {
   Widget build(BuildContext context) {
     final inventoryProvider = Provider.of<InventoryProvider>(context);
     final items = inventoryProvider.items;
+    var inventoryPackages = inventoryProvider.packages;
+
+    List<PackageModel> packages = inventoryPackages;
+
+    // Filtra os itens com base no pacote selecionado
+    final filteredItems =
+        (selectedPackage == null || selectedPackage?.name == 'Todos')
+            ? items
+            : items
+                .where((item) =>
+                    int.parse(item.packageId ?? '0') == selectedPackage?.id)
+                .toList();
 
     final List<List<InventoryItem>> pages = [];
-    int itemCount = items.length;
+    int itemCount = filteredItems.length;
 
+    // Primeira página com um item adicional para adicionar
     List<InventoryItem> firstPageItems = [
           InventoryItem(
             name: 'Adicionar Item',
@@ -163,11 +186,13 @@ class InventoryGridState extends State<InventoryGrid> {
             date: DateTime.now(),
           ),
         ] +
-        items.take(8).toList();
+        filteredItems.take(8).toList();
     pages.add(firstPageItems);
 
+    // Divide os itens restantes em páginas de 9 itens cada
     for (int i = 8; i < itemCount; i += 9) {
-      pages.add(items.sublist(i, i + 9 > itemCount ? itemCount : i + 9));
+      pages
+          .add(filteredItems.sublist(i, i + 9 > itemCount ? itemCount : i + 9));
     }
 
     return Container(
@@ -176,12 +201,12 @@ class InventoryGridState extends State<InventoryGrid> {
       ),
       child: Column(
         children: [
-          const Padding(
-            padding: EdgeInsets.only(top: 16, left: 16.0, bottom: 16.0),
+          Padding(
+            padding: const EdgeInsets.only(top: 16, left: 16.0, bottom: 8.0),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              mainAxisAlignment: MainAxisAlignment.start,
               children: [
-                Text(
+                const Text(
                   'Inventário Local',
                   style: TextStyle(
                     fontSize: 20,
@@ -189,112 +214,149 @@ class InventoryGridState extends State<InventoryGrid> {
                     color: AppColors.shadowColor,
                   ),
                 ),
+                const SizedBox(
+                  width: 16.0,
+                ),
+                DropdownButton<PackageModel>(
+                  value: selectedPackage,
+                  hint: const Text('Mostrar Todos'),
+                  onChanged: (PackageModel? newValue) {
+                    setState(() {
+                      if (newValue?.name == 'Mostrar Todos') {
+                        selectedPackage =
+                            null; // Trata o filtro para mostrar todos
+                      } else {
+                        selectedPackage = newValue;
+                      }
+                    });
+                  },
+                  items: [
+                    // Apenas os pacotes disponíveis
+                    ...packages,
+                    // O item para mostrar todos não deve ser um PackageModel. Coloque-o diretamente no dropdown.
+                    PackageModel(
+                        id: 1,
+                        name: 'Mostrar Todos',
+                        tags: []), // Ajuste o id para garantir unicidade
+                  ].map<DropdownMenuItem<PackageModel>>((PackageModel value) {
+                    return DropdownMenuItem<PackageModel>(
+                      value: value,
+                      child: Text(value.name),
+                    );
+                  }).toList(),
+                )
               ],
             ),
           ),
-          SizedBox(
-            height: 400,
-            child: PageView.builder(
-              controller: _pageController,
-              itemCount: pages.length,
-              itemBuilder: (context, pageIndex) {
-                return GridView.builder(
-                  physics: const NeverScrollableScrollPhysics(),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 3,
-                  ),
-                  itemCount: pages[pageIndex].length,
-                  itemBuilder: (context, index) {
-                    if (pageIndex == 0 && index == 0) {
-                      return GestureDetector(
-                        onTap: () {
-                          Navigator.of(context).push(CustomPageRoute(
-                            page: const FormPage(),
-                          ));
-                        },
-                        child: const Card(
-                          color: AppColors.appBarColor,
-                          child: Padding(
-                            padding: EdgeInsets.all(8.0),
-                            child: Icon(
-                              Icons.add,
-                              size: 40,
-                              color: Colors.black,
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12.0),
+            child: SizedBox(
+              height: 400,
+              child: PageView.builder(
+                controller: _pageController,
+                itemCount: pages.length,
+                itemBuilder: (context, pageIndex) {
+                  return GridView.builder(
+                    physics: const NeverScrollableScrollPhysics(),
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 3,
+                    ),
+                    itemCount: pages[pageIndex].length,
+                    itemBuilder: (context, index) {
+                      if (pageIndex == 0 && index == 0) {
+                        return GestureDetector(
+                          onTap: () {
+                            Navigator.of(context).push(CustomPageRoute(
+                              page: const FormPage(),
+                            ));
+                          },
+                          child: const Card(
+                            color: AppColors.appBarColor,
+                            child: Padding(
+                              padding: EdgeInsets.all(8.0),
+                              child: Icon(
+                                Icons.add,
+                                size: 40,
+                                color: Colors.black,
+                              ),
                             ),
                           ),
-                        ),
-                      );
-                    } else {
-                      final item = pages[pageIndex][index];
-                      return GestureDetector(
-                        onTap: () {
-                          Navigator.of(context).push(CustomPageRoute(
-                            page: ItemDetailsPage(item: item),
-                          ));
-                        },
-                        child: Stack(
-                          children: [
-                            SizedBox(
-                              width: double.infinity,
-                              child: Card(
-                                color: AppColors.appBarColor,
-                                child: Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Text(
-                                        item.name,
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 18,
-                                          color: Colors.black,
+                        );
+                      } else {
+                        final item = pages[pageIndex][index];
+                        return GestureDetector(
+                          onTap: () {
+                            Navigator.of(context).push(CustomPageRoute(
+                              page: ItemDetailsPage(item: item),
+                            ));
+                          },
+                          child: Stack(
+                            children: [
+                              SizedBox(
+                                width: double.infinity,
+                                child: Card(
+                                  color: AppColors.appBarColor,
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Text(
+                                          item.name,
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 18,
+                                            color: Colors.black,
+                                          ),
+                                          textAlign: TextAlign.center,
                                         ),
-                                        textAlign: TextAlign.center,
-                                      ),
-                                      const SizedBox(height: 8),
-                                      Text(
-                                        item.description ?? '',
-                                        style: const TextStyle(
-                                          fontSize: 14,
-                                          color: Colors.black,
+                                        const SizedBox(height: 8),
+                                        Text(
+                                          item.description ?? '',
+                                          style: const TextStyle(
+                                            fontSize: 14,
+                                            color: Colors.black,
+                                          ),
+                                          textAlign: TextAlign.center,
                                         ),
-                                        textAlign: TextAlign.center,
-                                      ),
-                                    ],
+                                      ],
+                                    ),
                                   ),
                                 ),
                               ),
-                            ),
-                            Positioned(
-                              top: 0,
-                              right: 0,
-                              child: IconButton(
-                                icon:
-                                    const Icon(Icons.close, color: Colors.grey),
-                                onPressed: () async {
-                                  bool? shouldDelete =
-                                      await _showDeleteCardConfirmationDialog(
-                                          context, item);
-                                  if (shouldDelete ?? false) {
-                                    _deleteItem(item);
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text(
-                                            '${item.name} deletado com sucesso!'),
-                                      ),
-                                    );
-                                  }
-                                },
+                              Positioned(
+                                top: 0,
+                                right: 0,
+                                child: IconButton(
+                                  icon: const Icon(Icons.close,
+                                      color: Colors.grey),
+                                  onPressed: () async {
+                                    bool? shouldDelete =
+                                        await _showDeleteCardConfirmationDialog(
+                                            context, item);
+                                    if (shouldDelete ?? false) {
+                                      _deleteItem(item);
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                              '${item.name} deletado com sucesso!'),
+                                        ),
+                                      );
+                                    }
+                                  },
+                                ),
                               ),
-                            ),
-                          ],
-                        ),
-                      );
-                    }
-                  },
-                );
-              },
+                            ],
+                          ),
+                        );
+                      }
+                    },
+                  );
+                },
+              ),
             ),
           ),
           Padding(
