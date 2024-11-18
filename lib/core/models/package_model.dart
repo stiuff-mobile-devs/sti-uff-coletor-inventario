@@ -1,5 +1,5 @@
 class PackageModel {
-  final int id;
+  late int id;
   final String name;
   late List<String> tags;
 
@@ -13,7 +13,7 @@ class PackageModel {
     return {
       'id': id,
       'name': name,
-      // 'tags': tags.join(','),
+      'tags': tags.join(','),
     };
   }
 

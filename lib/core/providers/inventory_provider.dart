@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:stiuffcoletorinventario/core/models/inventory_item.dart';
@@ -13,18 +15,30 @@ class InventoryProvider with ChangeNotifier {
   List<InventoryItem> get items => _items;
   List<PackageModel> get packages => _packages;
 
+  final _random = Random();
+
   Future<void> sendPackageToFirebase(
       List<PackageModel> selectedPackages, List<InventoryItem> allItems) async {
     try {
       for (var package in selectedPackages) {
+        final packageItems =
+            allItems.where((item) => item.packageId == package.id).toList();
+
+        if (package.id == 0) {
+          int newId;
+          do {
+            newId = _random.nextInt(90000000) + 10000000;
+          } while (_packages.any((p) => p.id == newId));
+
+          package.id = newId;
+        }
+
         final packageRef =
             _firestore.collection('packages').doc(package.id.toString());
         await packageRef.set(package.toMap());
 
-        final packageItems =
-            allItems.where((item) => item.packageId == package.id).toList();
-
         for (var item in packageItems) {
+          item.packageId = package.id;
           await packageRef
               .collection('items')
               .doc(item.barcode)
