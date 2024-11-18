@@ -47,7 +47,7 @@ class InventoryGridState extends State<InventoryGrid> {
         Provider.of<InventoryProvider>(context, listen: false);
     final packages = inventoryProvider.packages;
 
-    int result = 0;
+    int result = 2;
 
     await showDialog(
       context: context,
@@ -78,12 +78,11 @@ class InventoryGridState extends State<InventoryGrid> {
               }
 
               try {
-                await inventoryProvider
-                    .sendPackageToFirebase(
-                      selectedPackages,
-                      inventoryProvider.items,
-                    )
-                    .then((value) {});
+                await inventoryProvider.sendPackageToFirebase(
+                  selectedPackages,
+                  inventoryProvider.items,
+                );
+                result = 2;
               } catch (e) {
                 if (mounted) {
                   scaffoldMessengerKey.currentState?.showSnackBar(
@@ -463,13 +462,15 @@ class InventoryGridState extends State<InventoryGrid> {
                         if (response == 1) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
-                                content: Text('Houve falha no envio.')),
+                              content: Text('Houve falha no envio.'),
+                            ),
                           );
-                        } else {
+                        } else if (response == 0) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
-                                content:
-                                    Text('O envio foi realizado com sucesso.')),
+                              content:
+                                  Text('O envio foi realizado com sucesso.'),
+                            ),
                           );
                         }
                       },
