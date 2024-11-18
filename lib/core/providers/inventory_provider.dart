@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:stiuffcoletorinventario/core/models/inventory_item.dart';
 import 'package:stiuffcoletorinventario/core/models/package_model.dart';
@@ -7,8 +8,34 @@ class InventoryProvider with ChangeNotifier {
   List<InventoryItem> _items = [];
   List<PackageModel> _packages = [];
 
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
   List<InventoryItem> get items => _items;
   List<PackageModel> get packages => _packages;
+
+  Future<void> sendPackageToFirebase(
+      List<PackageModel> selectedPackages, List<InventoryItem> allItems) async {
+    try {
+      for (var package in selectedPackages) {
+        final packageRef =
+            _firestore.collection('packages').doc(package.id.toString());
+        await packageRef.set(package.toMap());
+
+        final packageItems =
+            allItems.where((item) => item.packageId == package.id).toList();
+
+        for (var item in packageItems) {
+          await packageRef
+              .collection('items')
+              .doc(item.barcode)
+              .set(item.toMap());
+        }
+      }
+    } catch (e) {
+      debugPrint('Erro ao enviar para o Firebase: $e');
+      throw Exception('Erro ao enviar dados');
+    }
+  }
 
   Future<void> loadPackages() async {
     final localStorageService = DatabaseHelper();

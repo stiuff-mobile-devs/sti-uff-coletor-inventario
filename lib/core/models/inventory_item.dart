@@ -48,8 +48,9 @@ class InventoryItem {
       images: map['images'] != null ? map['images'].split(',') : [],
       geolocation: map['geolocation'],
       observations: map['observations'],
-      date: DateFormat('yyyy-MM-dd')
-          .parse(map['date'] ?? DateTime.now().toString()),
+      date: DateFormat('yyyy-MM-dd').parse(
+        map['date'] ?? DateTime.now().toString(),
+      ),
     );
   }
 

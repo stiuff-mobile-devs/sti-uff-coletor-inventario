@@ -13,7 +13,7 @@ class PackageModel {
     return {
       'id': id,
       'name': name,
-      'tags': tags.join(','),
+      // 'tags': tags.join(','),
     };
   }
 

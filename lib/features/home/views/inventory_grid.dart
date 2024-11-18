@@ -9,6 +9,7 @@ import 'package:stiuffcoletorinventario/core/models/package_model.dart';
 import 'package:stiuffcoletorinventario/core/providers/inventory_provider.dart';
 import 'package:stiuffcoletorinventario/features/details/views/item_details_page.dart';
 import 'package:stiuffcoletorinventario/features/form/views/form_page.dart';
+import 'package:stiuffcoletorinventario/features/home/views/send_package_dialog.dart';
 import 'package:stiuffcoletorinventario/shared/components/confirmation_dialog.dart';
 import 'package:stiuffcoletorinventario/shared/utils/app_colors.dart';
 import 'package:stiuffcoletorinventario/shared/utils/custom_page_router.dart';
@@ -26,6 +27,9 @@ class InventoryGridState extends State<InventoryGrid> {
 
   PackageModel? selectedPackage;
 
+  final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey =
+      GlobalKey<ScaffoldMessengerState>();
+
   @override
   void initState() {
     super.initState();
@@ -36,6 +40,76 @@ class InventoryGridState extends State<InventoryGrid> {
         _currentPage = _pageController.page!.round();
       });
     });
+  }
+
+  Future<int> _showSendPackageModal(BuildContext context) async {
+    final inventoryProvider =
+        Provider.of<InventoryProvider>(context, listen: false);
+    final packages = inventoryProvider.packages;
+
+    int result = 0;
+
+    await showDialog(
+      context: context,
+      builder: (context) {
+        return SendPackageModal(
+          packages: packages,
+          onDispatch: (selectedPackages) async {
+            final inventoryProvider =
+                Provider.of<InventoryProvider>(context, listen: false);
+
+            if (selectedPackages.isNotEmpty) {
+              for (PackageModel i in selectedPackages) {
+                final packageItems = inventoryProvider.items
+                    .where((item) => item.packageId == i.id)
+                    .toList();
+                if (packageItems.isEmpty) {
+                  if (mounted) {
+                    scaffoldMessengerKey.currentState?.showSnackBar(
+                      SnackBar(
+                        content:
+                            Text('Erro. O pacote ${i.name} encontra-se vazio.'),
+                      ),
+                    );
+                  }
+                  result = 1;
+                  return;
+                }
+              }
+
+              try {
+                await inventoryProvider
+                    .sendPackageToFirebase(
+                      selectedPackages,
+                      inventoryProvider.items,
+                    )
+                    .then((value) {});
+              } catch (e) {
+                if (mounted) {
+                  scaffoldMessengerKey.currentState?.showSnackBar(
+                    const SnackBar(
+                      content: Text('Erro ao enviar os dados.'),
+                    ),
+                  );
+                }
+                result = 1;
+              }
+            } else {
+              if (mounted) {
+                scaffoldMessengerKey.currentState?.showSnackBar(
+                  const SnackBar(
+                    content: Text('Nenhum pacote selecionado.'),
+                  ),
+                );
+              }
+              result = 1;
+            }
+          },
+        );
+      },
+    );
+
+    return result;
   }
 
   Future<bool?> _showDeleteCardConfirmationDialog(
@@ -76,28 +150,6 @@ class InventoryGridState extends State<InventoryGrid> {
           message:
               'Você tem certeza de que deseja deletar permanentemente todos os itens do inventário local?',
           action: 'Apagar Tudo',
-        );
-      },
-    );
-  }
-
-  Future<bool?> _showPackageConfirmationDialog(BuildContext context) {
-    return showDialog<bool>(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return ConfirmationDialog(
-          onCancel: () {
-            Navigator.of(context).pop(false);
-          },
-          onConfirm: () {
-            Navigator.of(context).pop(true);
-          },
-          title: 'Confirmar Envio',
-          message:
-              'Você tem certeza de que deseja enviar este pacote ao servidor?',
-          action: 'Enviar',
-          onConfirmColor: Colors.blue,
         );
       },
     );
@@ -194,6 +246,7 @@ class InventoryGridState extends State<InventoryGrid> {
     }
 
     return Container(
+      key: scaffoldMessengerKey,
       decoration: const BoxDecoration(
         color: AppColors.secondaryBackgroundColor,
       ),
@@ -406,14 +459,17 @@ class InventoryGridState extends State<InventoryGrid> {
                     color: Colors.transparent,
                     child: InkWell(
                       onTap: () async {
-                        bool? shouldDeleteAll =
-                            await _showPackageConfirmationDialog(context);
-                        if (shouldDeleteAll ?? false) {
-                          _clearInventory();
+                        int response = await _showSendPackageModal(context);
+                        if (response == 1) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
-                              content: Text('O pacote foi enviado.'),
-                            ),
+                                content: Text('Houve falha no envio.')),
+                          );
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                                content:
+                                    Text('O envio foi realizado com sucesso.')),
                           );
                         }
                       },
