@@ -35,7 +35,21 @@ class TagsDialogState extends State<TagsDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Selecione as Tags'),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12.0),
+      ),
+      elevation: 4,
+      backgroundColor: Colors.white,
+      title: const Center(
+        child: Text(
+          'Selecione as Tags',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: Colors.black,
+          ),
+        ),
+      ),
       content: StatefulBuilder(
         builder: (BuildContext context, StateSetter setState) {
           return SingleChildScrollView(
@@ -46,7 +60,15 @@ class TagsDialogState extends State<TagsDialog> {
                   spacing: 8,
                   children: widget.allTags.map((tag) {
                     return FilterChip(
-                      label: Text(tag),
+                      backgroundColor: Colors.white,
+                      selectedColor: const Color.fromARGB(255, 92, 181, 255),
+                      label: Text(
+                        tag,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          color: Colors.black54,
+                        ),
+                      ),
                       selected: selectedTagsTemp.contains(tag),
                       onSelected: (bool selected) {
                         setState(() {
@@ -61,10 +83,31 @@ class TagsDialogState extends State<TagsDialog> {
                 const SizedBox(height: 12),
                 TextField(
                   controller: _newTagController,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: 'Criar nova tag',
-                    border: OutlineInputBorder(),
+                    labelStyle: const TextStyle(
+                      fontSize: 16,
+                      color: Colors.black,
+                    ),
                     hintText: 'Digite o nome da nova tag',
+                    hintStyle: const TextStyle(color: Colors.grey),
+                    filled: true,
+                    fillColor: Colors.grey[200],
+                    contentPadding: const EdgeInsets.symmetric(
+                        vertical: 14.0, horizontal: 16.0),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12.0),
+                      borderSide: BorderSide.none,
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12.0),
+                      borderSide: const BorderSide(color: Colors.transparent),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12.0),
+                      borderSide: const BorderSide(
+                          color: Colors.blueAccent, width: 1.5),
+                    ),
                   ),
                   onSubmitted: (value) {
                     if (value.isNotEmpty) {
@@ -81,11 +124,21 @@ class TagsDialogState extends State<TagsDialog> {
       ),
       actions: [
         TextButton(
-          child: const Text('Cancelar'),
+          style: TextButton.styleFrom(
+            foregroundColor: Colors.black,
+          ),
           onPressed: () => Navigator.pop(context),
+          child: const Text(
+            'Cancelar',
+          ),
         ),
         ElevatedButton(
-          child: const Text('Aplicar'),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.blue,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
           onPressed: () {
             widget.onTagsSelected(selectedTagsTemp);
             ScaffoldMessenger.of(context).showSnackBar(
@@ -93,6 +146,12 @@ class TagsDialogState extends State<TagsDialog> {
                   content: Text("As alterações em tags foram salvas.")),
             );
           },
+          child: const Text(
+            'Aplicar',
+            style: TextStyle(
+              color: Colors.white,
+            ),
+          ),
         ),
       ],
     );

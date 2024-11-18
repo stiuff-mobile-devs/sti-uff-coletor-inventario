@@ -7,6 +7,7 @@ import 'package:stiuffcoletorinventario/core/models/package_model.dart';
 import 'package:stiuffcoletorinventario/core/providers/inventory_provider.dart';
 import 'package:stiuffcoletorinventario/features/settings/views/tags_dialog.dart';
 import 'package:stiuffcoletorinventario/shared/components/app_drawer.dart';
+import 'package:stiuffcoletorinventario/shared/components/confirmation_dialog.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -56,7 +57,7 @@ class _SettingsPageState extends State<SettingsPage> {
               padding:
                   const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
               child: Text(
-                'Adicionar um novo Pacote',
+                'Adicionar um novo pacote',
                 style: Theme.of(context)
                     .textTheme
                     .headlineSmall
@@ -74,7 +75,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     borderRadius: BorderRadius.circular(12.0),
                     borderSide: BorderSide.none,
                   ),
-                  hintText: "Digite o nome do novo Pacote",
+                  hintText: "Digite o nome do novo pacote",
                   hintStyle: const TextStyle(color: Colors.black38),
                   suffixIcon: IconButton(
                     padding: const EdgeInsets.only(right: 28.0),
@@ -214,38 +215,25 @@ class _SettingsPageState extends State<SettingsPage> {
     InventoryProvider provider,
     int packageId,
   ) {
-    if (packageId == 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text("O pacote de ID = 0 não pode ser excluído.")),
-      );
-      return;
-    }
-
     showDialog(
       context: context,
-      builder: (context) {
-        return AlertDialog(
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
-          title: const Text("Confirmar Exclusão"),
-          content: const Text("Tem certeza de que deseja excluir este pacote?"),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text("Cancelar"),
-            ),
-            TextButton(
-              onPressed: () async {
-                await provider.removePackage(packageId);
-                Navigator.of(context).pop();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text("Pacote excluído com sucesso!")),
-                );
-              },
-              child: const Text("Excluir"),
-            ),
-          ],
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return ConfirmationDialog(
+          onCancel: () {
+            Navigator.of(context).pop(false);
+          },
+          onConfirm: () async {
+            await provider.removePackage(packageId);
+            Navigator.of(context).pop();
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text("Pacote excluído com sucesso!")),
+            );
+          },
+          title: 'Confirmar Exclusão',
+          message:
+              'Você tem certeza de que deseja apagar este pacote do inventário local?',
+          action: 'Excluir',
         );
       },
     );

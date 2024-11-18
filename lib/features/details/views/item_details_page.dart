@@ -70,15 +70,10 @@ class _ItemDetailsPageState extends State<ItemDetailsPage> {
     final inventoryProvider =
         Provider.of<InventoryProvider>(context, listen: false);
     if (inventoryProvider.packages.isNotEmpty) {
-      debugPrint("TRYING TO FIND!");
       selectedPackage = inventoryProvider.packages.firstWhere((package) {
-        debugPrint("FOUND $_packageId!");
-
         return package.id == _packageId;
       }, orElse: () {
-        debugPrint("FOUND NOTHING - $_packageId!");
-        return inventoryProvider
-            .packages.first; // Caso o ID não seja encontrado
+        return inventoryProvider.packages.first;
       });
     }
   }
