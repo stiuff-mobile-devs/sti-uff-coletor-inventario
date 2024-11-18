@@ -1,10 +1,10 @@
 class PackageModel {
-  final int? id;
+  final int id;
   final String name;
-  final List<String> tags;
+  late List<String> tags;
 
   PackageModel({
-    this.id,
+    required this.id,
     required this.name,
     required this.tags,
   });

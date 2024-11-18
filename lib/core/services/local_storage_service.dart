@@ -46,24 +46,24 @@ class DatabaseHelper {
 
         debugPrint('Criando tabela inventory...');
         await db.execute('''
-      CREATE TABLE inventory (
-        barcode INTEGER PRIMARY KEY,
-        name TEXT,
-        description TEXT,
-        packageId INTEGER,
-        location TEXT,
-        geolocation TEXT,
-        observations TEXT,
-        date TEXT,
-        images TEXT,
-        FOREIGN KEY(packageId) REFERENCES packages(id)
-      )
-    ''');
+        CREATE TABLE inventory (
+          barcode TEXT PRIMARY KEY,
+          name TEXT,
+          description TEXT,
+          packageId INTEGER,
+          location TEXT,
+          geolocation TEXT,
+          observations TEXT,
+          date TEXT,
+          images TEXT,
+          FOREIGN KEY(packageId) REFERENCES packages(id)
+        )
+        ''');
         debugPrint('Tabela inventory criada.');
 
         await db.insert(
           'packages',
-          {'id': 0, 'name': 'Pacote Default', 'tags': 'default'},
+          {'id': 0, 'name': 'Pacote Default', 'tags': 'Default'},
           conflictAlgorithm: ConflictAlgorithm.replace,
         );
         debugPrint('Pacote default inserido.');
@@ -82,34 +82,38 @@ class DatabaseHelper {
     );
   }
 
+  Future<void> updatePackage(PackageModel package) async {
+    final db = await database;
+
+    await db.update(
+      'packages',
+      package.toMap(),
+      where: 'id = ?',
+      whereArgs: [package.id],
+    );
+  }
+
   Future<void> removePackage(int packageId) async {
     final db = await database;
 
     try {
-      // Deletar o pacote
       await db.delete(
         'packages',
         where: 'id = ?',
         whereArgs: [packageId],
       );
 
-      // Deletar os itens de inventário que pertencem a este pacote
       await db.update(
         'inventory',
-        {
-          'packageId': 0
-        }, // Remover a associação com o pacote, colocando como default (id = 0)
+        {'packageId': 0},
         where: 'packageId = ?',
         whereArgs: [packageId],
       );
-
-      debugPrint('Pacote removido com sucesso!');
     } catch (e) {
       debugPrint('Erro ao remover pacote: $e');
     }
   }
 
-  // Obter todos os pacotes
   Future<List<PackageModel>> getAllPackages() async {
     final db = await database;
     final List<Map<String, dynamic>> maps = await db.query('packages');
@@ -137,10 +141,8 @@ class DatabaseHelper {
   Future<void> insertInventoryItem(InventoryItem item) async {
     final db = await database;
 
-    // Se o packageId for nulo, vamos usar o pacote default com id = 0
-    int packageId = (int.parse(item.packageId ?? '0'));
+    int packageId = (item.packageId);
 
-    // Se o pacoteId não for 0, verifica se o pacote existe
     if (packageId != 0) {
       final List<Map<String, dynamic>> packageResult = await db.query(
         'packages',
@@ -149,14 +151,12 @@ class DatabaseHelper {
       );
 
       if (packageResult.isEmpty) {
-        // Pacote não encontrado, armazenar no pacote 0 (default)
         debugPrint(
             'Pacote não encontrado. Armazenando no pacote default (ID: 0).');
-        packageId = 0; // Atribui pacote default
+        packageId = 0;
       }
     }
 
-    // Verificando se o item já existe
     final List<Map<String, dynamic>> existingItems = await db.query(
       'inventory',
       where: 'barcode = ?',
@@ -167,13 +167,11 @@ class DatabaseHelper {
       throw Exception('Um item com este barcode já existe.');
     }
 
-    // Atualizando o item com o packageId correto
     await db.insert(
       'inventory',
       {
         ...item.toMap(),
-        'packageId':
-            packageId, // Certificando-se de que o packageId está correto
+        'packageId': packageId,
       },
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
@@ -216,7 +214,6 @@ class DatabaseHelper {
       } else {
         debugPrint(
             'Tipo inesperado em "images": $imagesData (${imagesData.runtimeType})');
-        _clearDatabaseIfNeeded(db);
         images = null;
       }
 
@@ -232,11 +229,6 @@ class DatabaseHelper {
         images: images,
       );
     });
-  }
-
-  Future<void> _clearDatabaseIfNeeded(Database db) async {
-    await db.delete('inventory');
-    debugPrint('Dados corrompidos detectados. Tabela "inventory" limpa.');
   }
 
   Future<void> clearItems() async {
