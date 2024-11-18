@@ -8,8 +8,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:stiuffcoletorinventario/core/models/inventory_item.dart';
+import 'package:stiuffcoletorinventario/core/models/package_model.dart';
 import 'package:stiuffcoletorinventario/core/providers/inventory_provider.dart';
-import 'package:stiuffcoletorinventario/features/home/models/package_item.dart';
 import 'package:stiuffcoletorinventario/shared/components/image_item.dart';
 import 'package:stiuffcoletorinventario/shared/utils/app_colors.dart';
 
@@ -26,7 +26,6 @@ class _FormPageState extends State<FormPage> {
   final _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
   String? _name, _description, _location, _observations, _userEntryBarcode;
-  String _packageId = '0';
   List<String> _images = [];
   String? _geolocation;
   DateTime _currentDate = DateTime.now();
@@ -37,29 +36,31 @@ class _FormPageState extends State<FormPage> {
 
   bool _hasBarcodeError = false;
 
-  List<Package> _existingPackages = [
-    Package(
-        id: '0',
-        name: 'Pacote Default',
-        description: 'Grupo genérico',
-        dateSent: DateTime.now(),
-        tags: [],
-        items: []),
-    Package(
-        id: '1',
-        name: 'Pacote A',
-        description: 'Descrição do Pacote A',
-        dateSent: DateTime.now(),
-        tags: ['Tag1'],
-        items: []),
-    Package(
-        id: '2',
-        name: 'Pacote B',
-        description: 'Descrição do Pacote B',
-        dateSent: DateTime.now(),
-        tags: ['Tag2'],
-        items: []),
-  ];
+  PackageModel? selectedPackage;
+
+  // List<Package> _existingPackages = [
+  //   Package(
+  //       id: '0',
+  //       name: 'Pacote Default',
+  //       description: 'Grupo genérico',
+  //       dateSent: DateTime.now(),
+  //       tags: [],
+  //       items: []),
+  //   Package(
+  //       id: '1',
+  //       name: 'Pacote A',
+  //       description: 'Descrição do Pacote A',
+  //       dateSent: DateTime.now(),
+  //       tags: ['Tag1'],
+  //       items: []),
+  //   Package(
+  //       id: '2',
+  //       name: 'Pacote B',
+  //       description: 'Descrição do Pacote B',
+  //       dateSent: DateTime.now(),
+  //       tags: ['Tag2'],
+  //       items: []),
+  // ];
 
   Future<void> _captureGeolocation() async {
     setState(() {
@@ -142,7 +143,25 @@ class _FormPageState extends State<FormPage> {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    final inventoryProvider =
+        Provider.of<InventoryProvider>(context, listen: false);
+
+    // Check if packages list is not empty and initialize selectedPackage correctly
+    if (inventoryProvider.packages.isNotEmpty) {
+      selectedPackage ??= inventoryProvider.packages.firstWhere(
+          (package) => package.id == 0,
+          orElse: () => inventoryProvider.packages.first);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final inventoryProvider = Provider.of<InventoryProvider>(context);
+    List<PackageModel> packages = inventoryProvider.packages;
+
     InputDecoration inputDecoration(
         {required String label, bool readOnly = false, bool hasError = false}) {
       return InputDecoration(
@@ -331,33 +350,27 @@ class _FormPageState extends State<FormPage> {
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(5),
                       ),
-                      child: DropdownButton<String>(
-                        padding: const EdgeInsets.only(left: 8.0),
-                        value: _packageId,
-                        hint: const Text(
-                          'Selecione um pacote',
-                          style: TextStyle(color: Colors.white),
-                        ),
-                        items: [
-                          ..._existingPackages.map((package) {
-                            return DropdownMenuItem<String>(
-                              value: package.id,
-                              child: Text(
-                                package.name,
-                                style: const TextStyle(fontSize: 16),
-                              ),
-                            );
-                          }),
-                        ],
-                        onChanged: (value) {
-                          setState(() {
-                            _packageId = value ?? '0';
-                          });
-                        },
-                        underline: const SizedBox(),
-                        icon: const Icon(Icons.arrow_drop_down,
-                            color: Colors.black54),
-                      ),
+                      child: (packages.isEmpty)
+                          ? const Center(
+                              child: Text('Sem pacotes disponíveis'),
+                            )
+                          : DropdownButton<PackageModel>(
+                              value: selectedPackage,
+                              hint: const Text('Selecione um pacote'),
+                              items: packages
+                                  .map<DropdownMenuItem<PackageModel>>(
+                                      (PackageModel package) {
+                                return DropdownMenuItem<PackageModel>(
+                                  value: package,
+                                  child: Text(package.name),
+                                );
+                              }).toList(),
+                              onChanged: (PackageModel? value) {
+                                setState(() {
+                                  selectedPackage = value;
+                                });
+                              },
+                            ),
                     ),
                   ],
                 ),
@@ -446,7 +459,8 @@ class _FormPageState extends State<FormPage> {
                       barcode: widget.barcode ?? _userEntryBarcode ?? '',
                       name: _name ?? '',
                       description: _description,
-                      packageId: _packageId,
+                      packageId:
+                          (selectedPackage != null) ? selectedPackage!.id : 0,
                       images: _images,
                       location: _location ?? '',
                       geolocation: _geolocation,

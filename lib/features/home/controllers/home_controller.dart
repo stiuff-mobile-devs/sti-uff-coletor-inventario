@@ -60,6 +60,7 @@ class HomeController {
             InventoryItem(
               name: 'Item 1',
               description: 'Descrição do Item 1',
+              packageId: 0,
               location: '',
               barcode: '',
               date: DateTime.now(),
@@ -67,6 +68,7 @@ class HomeController {
             InventoryItem(
               name: 'Item 2',
               description: 'Descrição do Item 2',
+              packageId: 0,
               location: '',
               barcode: '',
               date: DateTime.now(),
@@ -83,6 +85,7 @@ class HomeController {
             InventoryItem(
               name: 'Item 1',
               description: 'Descrição do Item 1',
+              packageId: 0,
               location: '',
               barcode: '',
               date: DateTime.now(),
@@ -90,6 +93,7 @@ class HomeController {
             InventoryItem(
               name: 'Item 2',
               description: 'Descrição do Item 2',
+              packageId: 0,
               location: '',
               barcode: '',
               date: DateTime.now(),
@@ -108,6 +112,7 @@ class HomeController {
             InventoryItem(
               name: 'Item 1',
               description: 'Descrição do Item 1',
+              packageId: 0,
               location: '',
               barcode: '',
               date: DateTime.now(),
@@ -115,6 +120,7 @@ class HomeController {
             InventoryItem(
               name: 'Item 2',
               description: 'Descrição do Item 2',
+              packageId: 0,
               location: '',
               barcode: '',
               date: DateTime.now(),
@@ -131,6 +137,7 @@ class HomeController {
             InventoryItem(
               name: 'Item 1',
               description: 'Descrição do Item 1',
+              packageId: 0,
               location: '',
               barcode: '',
               date: DateTime.now(),
@@ -138,6 +145,7 @@ class HomeController {
             InventoryItem(
               name: 'Item 2',
               description: 'Descrição do Item 2',
+              packageId: 0,
               location: '',
               barcode: '',
               date: DateTime.now(),

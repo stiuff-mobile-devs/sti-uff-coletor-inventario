@@ -6,8 +6,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:stiuffcoletorinventario/core/models/inventory_item.dart';
+import 'package:stiuffcoletorinventario/core/models/package_model.dart';
 import 'package:stiuffcoletorinventario/core/providers/inventory_provider.dart';
-import 'package:stiuffcoletorinventario/features/home/models/package_item.dart';
 import 'package:stiuffcoletorinventario/shared/utils/app_colors.dart';
 
 class ItemDetailsPage extends StatefulWidget {
@@ -23,33 +23,36 @@ class _ItemDetailsPageState extends State<ItemDetailsPage> {
   final _formKey = GlobalKey<FormState>();
   bool _isEditing = false;
   late String? _barcode, _name, _description, _location, _observations;
-  late String? _geolocation, _packageId;
+  late String? _geolocation;
+  late int _packageId;
   late List<String>? _images;
   final ImagePicker _picker = ImagePicker();
 
-  final List<Package> _existingPackages = [
-    Package(
-        id: '0',
-        name: 'Pacote Default',
-        description: 'Grupo genérico',
-        dateSent: DateTime.now(),
-        tags: [],
-        items: []),
-    Package(
-        id: '1',
-        name: 'Pacote A',
-        description: 'Descrição do Pacote A',
-        dateSent: DateTime.now(),
-        tags: ['Tag1'],
-        items: []),
-    Package(
-        id: '2',
-        name: 'Pacote B',
-        description: 'Descrição do Pacote B',
-        dateSent: DateTime.now(),
-        tags: ['Tag2'],
-        items: []),
-  ];
+  PackageModel? selectedPackage;
+
+  // final List<Package> _existingPackages = [
+  //   Package(
+  //       id: '0',
+  //       name: 'Pacote Default',
+  //       description: 'Grupo genérico',
+  //       dateSent: DateTime.now(),
+  //       tags: [],
+  //       items: []),
+  //   Package(
+  //       id: '1',
+  //       name: 'Pacote A',
+  //       description: 'Descrição do Pacote A',
+  //       dateSent: DateTime.now(),
+  //       tags: ['Tag1'],
+  //       items: []),
+  //   Package(
+  //       id: '2',
+  //       name: 'Pacote B',
+  //       description: 'Descrição do Pacote B',
+  //       dateSent: DateTime.now(),
+  //       tags: ['Tag2'],
+  //       items: []),
+  // ];
 
   @override
   void initState() {
@@ -62,6 +65,22 @@ class _ItemDetailsPageState extends State<ItemDetailsPage> {
     _observations = widget.item.observations;
     _geolocation = widget.item.geolocation;
     _packageId = widget.item.packageId;
+
+    // Atribuir o pacote inicial
+    final inventoryProvider =
+        Provider.of<InventoryProvider>(context, listen: false);
+    if (inventoryProvider.packages.isNotEmpty) {
+      debugPrint("TRYING TO FIND!");
+      selectedPackage = inventoryProvider.packages.firstWhere((package) {
+        debugPrint("FOUND $_packageId!");
+
+        return package.id == _packageId;
+      }, orElse: () {
+        debugPrint("FOUND NOTHING - $_packageId!");
+        return inventoryProvider
+            .packages.first; // Caso o ID não seja encontrado
+      });
+    }
   }
 
   InputDecoration _inputDecoration(String label, {bool readOnly = false}) {
@@ -210,6 +229,9 @@ class _ItemDetailsPageState extends State<ItemDetailsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final inventoryProvider = Provider.of<InventoryProvider>(context);
+    List<PackageModel> packages = inventoryProvider.packages;
+
     return Scaffold(
       appBar: AppBar(),
       floatingActionButton: _isEditing
@@ -254,15 +276,21 @@ class _ItemDetailsPageState extends State<ItemDetailsPage> {
                       int response =
                           await inventoryProvider.updateItem(newItem);
                       if (response == 0) {
-                        ScaffoldMessenger.of(context).showSnackBar(
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
                                 content:
-                                    Text('Dados atualizados com sucesso!')));
+                                    Text('Dados atualizados com sucesso!')),
+                          );
+                        }
                       } else {
-                        ScaffoldMessenger.of(context).showSnackBar(
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
                                 content: Text(
-                                    'Não foi possível realizar a operação.')));
+                                    'Não foi possível realizar a operação.')),
+                          );
+                        }
                       }
                       setState(() {
                         _isEditing = false;
@@ -336,35 +364,31 @@ class _ItemDetailsPageState extends State<ItemDetailsPage> {
                             : const Color.fromARGB(255, 231, 231, 231),
                         borderRadius: BorderRadius.circular(5),
                       ),
-                      child: DropdownButton<String>(
-                        padding: const EdgeInsets.only(left: 8.0),
-                        value: _packageId,
-                        hint: const Text(
-                          'Selecione um pacote',
-                          style: TextStyle(color: Colors.white),
-                        ),
-                        items: [
-                          ..._existingPackages.map((package) {
-                            return DropdownMenuItem<String>(
-                              value: package.id,
-                              child: Text(
-                                package.name,
-                                style: const TextStyle(fontSize: 16),
+                      child: (packages.isEmpty)
+                          ? const Center(
+                              child: Text('Sem pacotes disponíveis'),
+                            )
+                          : AbsorbPointer(
+                              absorbing: !_isEditing,
+                              child: DropdownButton<PackageModel>(
+                                value: selectedPackage,
+                                hint: const Text('Selecione um pacote'),
+                                items: packages
+                                    .map<DropdownMenuItem<PackageModel>>(
+                                        (PackageModel package) {
+                                  return DropdownMenuItem<PackageModel>(
+                                    value: package,
+                                    child: Text(package.name),
+                                  );
+                                }).toList(),
+                                onChanged: (PackageModel? value) {
+                                  setState(() {
+                                    selectedPackage = value;
+                                    _packageId = value?.id ?? 0;
+                                  });
+                                },
                               ),
-                            );
-                          }),
-                        ],
-                        onChanged: _isEditing
-                            ? (value) {
-                                setState(() {
-                                  _packageId = value ?? '0';
-                                });
-                              }
-                            : null,
-                        underline: const SizedBox(),
-                        icon: const Icon(Icons.arrow_drop_down,
-                            color: Colors.black54),
-                      ),
+                            ),
                     ),
                   ],
                 ),

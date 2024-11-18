@@ -16,16 +16,27 @@ class InventoryProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> updatePackage(PackageModel package) async {
+    final localStorageService = DatabaseHelper();
+
+    try {
+      await localStorageService.updatePackage(package);
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Erro ao atualizar pacote: $e');
+    }
+  }
+
   Future<int> addPackage(PackageModel package) async {
     final localStorageService = DatabaseHelper();
 
     final existingPackages = await localStorageService.getAllPackages();
     final existingPackage = existingPackages.firstWhere(
       (existingPackage) => existingPackage.id == package.id,
-      orElse: () => PackageModel(id: -1, name: '', tags: []),
+      orElse: () => PackageModel(id: 1, name: '', tags: []),
     );
 
-    if (existingPackage.id != -1) {
+    if (existingPackage.id != 1) {
       debugPrint('Erro: Já existe um pacote com o mesmo id.');
       return 1;
     }
@@ -45,22 +56,18 @@ class InventoryProvider with ChangeNotifier {
     final localStorageService = DatabaseHelper();
 
     try {
-      // Remover o pacote do banco de dados
-      await localStorageService.removePackage(
-          packageId); // Método no DatabaseHelper para remover pacotes
+      await localStorageService.removePackage(packageId);
 
-      // Atualizar os itens relacionados ao pacote, colocando como pacote default (ID = 0)
       for (var item in _items) {
-        if (int.parse(item.packageId ?? '0') == packageId) {
-          item.packageId = '0'; // Altera os itens para o pacote default
+        if ((item.packageId) == packageId) {
+          item.packageId = 0;
         }
       }
 
-      // Remover o pacote da lista local
       _packages.removeWhere((package) => package.id == packageId);
 
       notifyListeners();
-      debugPrint('Pacote removido com sucesso!');
+      debugPrint('Pacote removido com sucesso! #$packageId');
     } catch (e) {
       debugPrint('Erro ao remover pacote: $e');
     }
@@ -82,7 +89,7 @@ class InventoryProvider with ChangeNotifier {
         barcode: "-1",
         name: '',
         description: '',
-        packageId: '',
+        packageId: 0,
         location: '',
         geolocation: '',
         observations: '',

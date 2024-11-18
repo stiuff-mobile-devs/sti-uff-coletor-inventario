@@ -5,7 +5,7 @@ class InventoryItem {
   final String barcode;
   final String name;
   final String? description;
-  late String? packageId;
+  late int packageId;
   final String location;
   final List<String>? images;
   final String? geolocation;
@@ -16,7 +16,7 @@ class InventoryItem {
     required this.barcode,
     required this.name,
     this.description,
-    this.packageId,
+    required this.packageId,
     required this.location,
     this.images,
     this.geolocation,

@@ -164,23 +164,22 @@ class InventoryGridState extends State<InventoryGrid> {
 
     List<PackageModel> packages = inventoryPackages;
 
-    // Filtra os itens com base no pacote selecionado
-    final filteredItems =
-        (selectedPackage == null || selectedPackage?.name == 'Todos')
-            ? items
-            : items
-                .where((item) =>
-                    int.parse(item.packageId ?? '0') == selectedPackage?.id)
-                .toList();
+    final List<InventoryItem> filteredItems;
+    if ((selectedPackage == null)) {
+      filteredItems = items;
+    } else {
+      filteredItems = filteredItems =
+          items.where((item) => item.packageId == selectedPackage!.id).toList();
+    }
 
     final List<List<InventoryItem>> pages = [];
     int itemCount = filteredItems.length;
 
-    // Primeira página com um item adicional para adicionar
     List<InventoryItem> firstPageItems = [
           InventoryItem(
             name: 'Adicionar Item',
             description: '',
+            packageId: 0,
             barcode: '',
             location: '',
             date: DateTime.now(),
@@ -189,7 +188,6 @@ class InventoryGridState extends State<InventoryGrid> {
         filteredItems.take(8).toList();
     pages.add(firstPageItems);
 
-    // Divide os itens restantes em páginas de 9 itens cada
     for (int i = 8; i < itemCount; i += 9) {
       pages
           .add(filteredItems.sublist(i, i + 9 > itemCount ? itemCount : i + 9));
@@ -218,27 +216,17 @@ class InventoryGridState extends State<InventoryGrid> {
                   width: 16.0,
                 ),
                 DropdownButton<PackageModel>(
-                  value: selectedPackage,
-                  hint: const Text('Mostrar Todos'),
+                  value: packages.contains(selectedPackage)
+                      ? selectedPackage
+                      : null,
+                  hint: const Text('Selecione um Pacote'),
                   onChanged: (PackageModel? newValue) {
                     setState(() {
-                      if (newValue?.name == 'Mostrar Todos') {
-                        selectedPackage =
-                            null; // Trata o filtro para mostrar todos
-                      } else {
-                        selectedPackage = newValue;
-                      }
+                      selectedPackage = newValue;
                     });
                   },
-                  items: [
-                    // Apenas os pacotes disponíveis
-                    ...packages,
-                    // O item para mostrar todos não deve ser um PackageModel. Coloque-o diretamente no dropdown.
-                    PackageModel(
-                        id: 1,
-                        name: 'Mostrar Todos',
-                        tags: []), // Ajuste o id para garantir unicidade
-                  ].map<DropdownMenuItem<PackageModel>>((PackageModel value) {
+                  items: packages.map<DropdownMenuItem<PackageModel>>(
+                      (PackageModel value) {
                     return DropdownMenuItem<PackageModel>(
                       value: value,
                       child: Text(value.name),
@@ -467,7 +455,7 @@ class InventoryGridState extends State<InventoryGrid> {
 
   Widget _buildPageIndicators(int pageCount) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 18.0),
+      padding: const EdgeInsets.only(bottom: 16.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: List.generate(pageCount, (index) {

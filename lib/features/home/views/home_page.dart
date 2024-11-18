@@ -33,49 +33,6 @@ class _HomePageState extends State<HomePage> {
     super.dispose();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        elevation: 0,
-        backgroundColor: Colors.blue,
-      ),
-      drawer: AppDrawer(selectedIndex: 0),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            const InfoCarousel(),
-            const SizedBox(height: 20),
-            const InventoryGrid(),
-            const SizedBox(height: 20),
-            _buildPackageSection(),
-            const SizedBox(height: 85),
-          ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        tooltip: "Leitor de Barras",
-        backgroundColor: Colors.red,
-        splashColor: AppColors.lightOrangeSplashColor,
-        onPressed: () => Navigator.push(
-          context,
-          // MaterialPageRoute(builder: (context) => const CameraPage()),
-          CustomPageRoute(page: const CameraPage()),
-        ),
-        child: SvgPicture.asset(
-          'assets/icons/barcode.svg',
-          width: 36,
-          height: 36,
-          colorFilter: const ColorFilter.mode(
-            Colors.white,
-            BlendMode.srcIn,
-          ),
-        ),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-    );
-  }
-
   Widget _buildPackageSection() {
     return Column(
       children: [
@@ -157,5 +114,48 @@ class _HomePageState extends State<HomePage> {
       });
       controller.filterPackages();
     }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        elevation: 0,
+        backgroundColor: Colors.blue,
+      ),
+      drawer: AppDrawer(selectedIndex: 0),
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            const InfoCarousel(),
+            const SizedBox(height: 20),
+            const InventoryGrid(),
+            const SizedBox(height: 20),
+            _buildPackageSection(),
+            const SizedBox(height: 85),
+          ],
+        ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        tooltip: "Leitor de Barras",
+        backgroundColor: Colors.red,
+        splashColor: AppColors.lightOrangeSplashColor,
+        onPressed: () => Navigator.push(
+          context,
+          // MaterialPageRoute(builder: (context) => const CameraPage()),
+          CustomPageRoute(page: const CameraPage()),
+        ),
+        child: SvgPicture.asset(
+          'assets/icons/barcode.svg',
+          width: 36,
+          height: 36,
+          colorFilter: const ColorFilter.mode(
+            Colors.white,
+            BlendMode.srcIn,
+          ),
+        ),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+    );
   }
 }
