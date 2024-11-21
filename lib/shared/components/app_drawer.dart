@@ -1,6 +1,7 @@
 // ignore_for_file: use_build_context_synchronously
 
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:stiuffcoletorinventario/features/about/views/about_page.dart';
 import 'package:stiuffcoletorinventario/features/camera/views/camera_page.dart';
 import 'package:stiuffcoletorinventario/features/login/controller/auth_controller.dart';
@@ -31,8 +32,8 @@ class AppDrawer extends StatelessWidget {
               children: [
                 Padding(
                   padding: const EdgeInsets.all(8.0),
-                  child: Image.asset(
-                    'assets/icons/small-app-icon.png',
+                  child: SvgPicture.asset(
+                    'assets/icons/RenderColetorUFF.svg',
                     width: 42,
                     height: 42,
                   ),

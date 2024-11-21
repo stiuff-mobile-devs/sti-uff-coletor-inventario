@@ -1,6 +1,7 @@
 // ignore_for_file: use_build_context_synchronously
 
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:stiuffcoletorinventario/features/login/controller/auth_controller.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -72,8 +73,8 @@ class LoginScreenState extends State<LoginScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Image.asset(
-              'assets/icons/small-app-icon.png',
+            SvgPicture.asset(
+              'assets/icons/RenderColetorUFF.svg',
               width: 100,
               height: 100,
             ),
