@@ -7,7 +7,7 @@ class InventoryItem {
   final String? description;
   late int packageId;
   final String location;
-  final List<String>? images;
+  late List<String>? images;
   final String? geolocation;
   final String? observations;
   final DateTime date;
@@ -31,7 +31,7 @@ class InventoryItem {
       'description': description,
       'packageId': packageId,
       'location': location,
-      'images': images?.join(','),
+      'images': images,
       'geolocation': geolocation,
       'observations': observations,
       'date': DateFormat('yyyy-MM-dd').format(date),
@@ -45,7 +45,7 @@ class InventoryItem {
       description: map['description'],
       packageId: map['packageId'],
       location: map['location'] ?? '',
-      images: map['images'] != null ? map['images'].split(',') : [],
+      images: List<String>.from(map['images'] ?? []),
       geolocation: map['geolocation'],
       observations: map['observations'],
       date: DateFormat('yyyy-MM-dd').parse(

@@ -123,6 +123,21 @@ class DatabaseHelper {
     });
   }
 
+  Future<void> removeItemsByPackageId(int packageId) async {
+    final db = await database;
+    try {
+      await db.delete(
+        'inventory',
+        where: 'packageId = ?',
+        whereArgs: [packageId],
+      );
+      debugPrint('Itens com packageId $packageId removidos do banco de dados.');
+    } catch (e) {
+      debugPrint('Erro ao remover itens do banco de dados: $e');
+      throw Exception('Erro ao remover itens do banco de dados');
+    }
+  }
+
   Future<void> removeItem(InventoryItem item) async {
     final db = await database;
 

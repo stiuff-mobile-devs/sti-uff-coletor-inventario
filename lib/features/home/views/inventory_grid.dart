@@ -27,8 +27,7 @@ class InventoryGridState extends State<InventoryGrid> {
 
   PackageModel? selectedPackage;
 
-  final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey =
-      GlobalKey<ScaffoldMessengerState>();
+  late List<PackageModel> selectedPackages;
 
   @override
   void initState() {
@@ -42,73 +41,135 @@ class InventoryGridState extends State<InventoryGrid> {
     });
   }
 
-  Future<int> _showSendPackageModal(BuildContext context) async {
+  Future<void> _showSendPackageModal(BuildContext context) async {
     final inventoryProvider =
         Provider.of<InventoryProvider>(context, listen: false);
     final packages = inventoryProvider.packages;
-
-    int result = 2;
 
     await showDialog(
       context: context,
       builder: (context) {
         return SendPackageModal(
           packages: packages,
-          onDispatch: (selectedPackages) async {
-            final inventoryProvider =
-                Provider.of<InventoryProvider>(context, listen: false);
-
-            if (selectedPackages.isNotEmpty) {
-              for (PackageModel i in selectedPackages) {
-                final packageItems = inventoryProvider.items
-                    .where((item) => item.packageId == i.id)
-                    .toList();
-                if (packageItems.isEmpty) {
-                  if (mounted) {
-                    scaffoldMessengerKey.currentState?.showSnackBar(
-                      SnackBar(
-                        content:
-                            Text('Erro. O pacote ${i.name} encontra-se vazio.'),
-                      ),
-                    );
-                  }
-                  result = 1;
-                  return;
-                }
-              }
-
-              try {
-                await inventoryProvider.sendPackageToFirebase(
-                  selectedPackages,
-                  inventoryProvider.items,
-                );
-                result = 2;
-              } catch (e) {
-                if (mounted) {
-                  scaffoldMessengerKey.currentState?.showSnackBar(
-                    const SnackBar(
-                      content: Text('Erro ao enviar os dados.'),
-                    ),
-                  );
-                }
-                result = 1;
-              }
-            } else {
+          onDispatch: (selectedPackages) {
+            if (selectedPackages.isEmpty) {
               if (mounted) {
-                scaffoldMessengerKey.currentState?.showSnackBar(
+                ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
                     content: Text('Nenhum pacote selecionado.'),
                   ),
                 );
               }
-              result = 1;
+            } else {
+              this.selectedPackages = selectedPackages;
+              // Navigator.of(context).pop();
             }
           },
         );
       },
     );
+  }
 
-    return result;
+  Future<void> _sendSelectedPackages(
+      BuildContext context, List<PackageModel> selectedPackages) async {
+    final inventoryProvider =
+        Provider.of<InventoryProvider>(context, listen: false);
+
+    for (PackageModel package in selectedPackages) {
+      final packageItems = inventoryProvider.items
+          .where((item) => item.packageId == package.id)
+          .toList();
+      if (packageItems.isEmpty) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content:
+                  Text('Erro. O pacote ${package.name} encontra-se vazio.'),
+            ),
+          );
+        }
+        return;
+      }
+    }
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent,
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: Colors.black.withOpacity(0.7),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: const Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CircularProgressIndicator(
+                color: Colors.white,
+              ),
+              SizedBox(width: 16),
+              Text(
+                'Carregando...',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    try {
+      final result = await inventoryProvider.sendPackageToFirebase(
+        selectedPackages,
+        inventoryProvider.items,
+      );
+
+      if (Navigator.canPop(context)) Navigator.pop(context);
+
+      switch (result) {
+        case 200:
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Pacote(s) enviado(s) com sucesso.'),
+            ),
+          );
+          break;
+        case 500:
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Erro geral ao enviar pacote(s).'),
+            ),
+          );
+          break;
+        case 502:
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Erro ao fazer upload de imagens.'),
+            ),
+          );
+          break;
+        default:
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Erro desconhecido ao enviar o(s) pacote(s).'),
+            ),
+          );
+      }
+    } catch (e) {
+      if (Navigator.canPop(context)) Navigator.pop(context);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Erro ao enviar os dados.'),
+        ),
+      );
+    }
   }
 
   Future<bool?> _showDeleteCardConfirmationDialog(
@@ -245,7 +306,6 @@ class InventoryGridState extends State<InventoryGrid> {
     }
 
     return Container(
-      key: scaffoldMessengerKey,
       decoration: const BoxDecoration(
         color: AppColors.secondaryBackgroundColor,
       ),
@@ -458,21 +518,8 @@ class InventoryGridState extends State<InventoryGrid> {
                     color: Colors.transparent,
                     child: InkWell(
                       onTap: () async {
-                        int response = await _showSendPackageModal(context);
-                        if (response == 1) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Houve falha no envio.'),
-                            ),
-                          );
-                        } else if (response == 0) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content:
-                                  Text('O envio foi realizado com sucesso.'),
-                            ),
-                          );
-                        }
+                        await _showSendPackageModal(context);
+                        await _sendSelectedPackages(context, selectedPackages);
                       },
                       borderRadius: BorderRadius.circular(4),
                       splashColor: Colors.blue.withOpacity(0.3),
