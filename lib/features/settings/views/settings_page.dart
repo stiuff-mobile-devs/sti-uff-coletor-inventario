@@ -37,106 +37,113 @@ class _SettingsPageState extends State<SettingsPage> {
         iconTheme: const IconThemeData(color: Colors.black),
       ),
       drawer: AppDrawer(selectedIndex: 1),
-      body: Padding(
-        padding: const EdgeInsets.fromLTRB(20.0, 20.0, 20.0, 0.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding:
-                  const EdgeInsets.only(bottom: 12.0, left: 8.0, right: 8.0),
-              child: Text(
-                "Pacotes",
-                style: Theme.of(context)
-                    .textTheme
-                    .headlineMedium
-                    ?.copyWith(fontWeight: FontWeight.bold),
-              ),
-            ),
-            Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-              child: Text(
-                'Adicionar um novo pacote',
-                style: Theme.of(context)
-                    .textTheme
-                    .headlineSmall
-                    ?.copyWith(fontWeight: FontWeight.bold, fontSize: 16),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8.0),
-              child: TextField(
-                controller: _packageNameController,
-                decoration: InputDecoration(
-                  filled: true,
-                  fillColor: Colors.grey[200],
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12.0),
-                    borderSide: BorderSide.none,
-                  ),
-                  hintText: "Digite o nome do novo pacote",
-                  hintStyle: const TextStyle(color: Colors.black38),
-                  suffixIcon: IconButton(
-                    padding: const EdgeInsets.only(right: 28.0),
-                    icon: const Icon(Icons.add, color: Colors.blue),
-                    onPressed: () => _addPackage(context, inventoryProvider),
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(
-                      vertical: 12.0, horizontal: 16.0),
+      body: GestureDetector(
+        onTap: () {
+          FocusScope.of(context).requestFocus(FocusNode());
+        },
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20.0, 20.0, 20.0, 0.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding:
+                    const EdgeInsets.only(bottom: 12.0, left: 8.0, right: 8.0),
+                child: Text(
+                  "Pacotes",
+                  style: Theme.of(context)
+                      .textTheme
+                      .headlineMedium
+                      ?.copyWith(fontWeight: FontWeight.bold),
                 ),
-                style: Theme.of(context)
-                    .textTheme
-                    .bodyMedium
-                    ?.copyWith(fontSize: 16),
               ),
-            ),
-            const SizedBox(height: 24),
-            Expanded(
-              child: ListView.builder(
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                child: Text(
+                  'Adicionar um novo pacote',
+                  style: Theme.of(context)
+                      .textTheme
+                      .headlineSmall
+                      ?.copyWith(fontWeight: FontWeight.bold, fontSize: 16),
+                ),
+              ),
+              Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                itemCount: inventoryProvider.packages.length,
-                itemBuilder: (context, index) {
-                  final package = inventoryProvider.packages[index];
-                  return Card(
-                    color: Colors.white,
-                    margin: const EdgeInsets.symmetric(vertical: 8.0),
-                    elevation: 4,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8.0),
+                child: TextField(
+                  controller: _packageNameController,
+                  decoration: InputDecoration(
+                    filled: true,
+                    fillColor: Colors.grey[200],
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12.0),
+                      borderSide: BorderSide.none,
                     ),
-                    child: ListTile(
-                      contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 16.0, vertical: 0.0),
-                      title: Text(package.name,
-                          style: Theme.of(context).textTheme.bodyMedium),
-                      trailing: package.id != 0
-                          ? SizedBox(
-                              width: 120,
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.end,
-                                children: [
-                                  IconButton(
-                                    icon: const Icon(Icons.edit,
-                                        color: Colors.blue),
-                                    onPressed: () => _openTagDialog(package),
-                                  ),
-                                  IconButton(
-                                    icon: const Icon(Icons.delete,
-                                        color: Colors.red),
-                                    onPressed: () => _confirmDeletePackage(
-                                        context, inventoryProvider, package.id),
-                                  ),
-                                ],
-                              ),
-                            )
-                          : const SizedBox.shrink(),
+                    hintText: "Digite o nome do novo pacote",
+                    hintStyle: const TextStyle(color: Colors.black38),
+                    suffixIcon: IconButton(
+                      padding: const EdgeInsets.only(right: 28.0),
+                      icon: const Icon(Icons.add, color: Colors.blue),
+                      onPressed: () => _addPackage(context, inventoryProvider),
                     ),
-                  );
-                },
+                    contentPadding: const EdgeInsets.symmetric(
+                        vertical: 12.0, horizontal: 16.0),
+                  ),
+                  style: Theme.of(context)
+                      .textTheme
+                      .bodyMedium
+                      ?.copyWith(fontSize: 16),
+                ),
               ),
-            ),
-          ],
+              const SizedBox(height: 24),
+              Expanded(
+                child: ListView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                  itemCount: inventoryProvider.packages.length,
+                  itemBuilder: (context, index) {
+                    final package = inventoryProvider.packages[index];
+                    return Card(
+                      color: Colors.white,
+                      margin: const EdgeInsets.symmetric(vertical: 8.0),
+                      elevation: 4,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8.0),
+                      ),
+                      child: ListTile(
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16.0, vertical: 0.0),
+                        title: Text(package.name,
+                            style: Theme.of(context).textTheme.bodyMedium),
+                        trailing: package.id != 0
+                            ? SizedBox(
+                                width: 120,
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  children: [
+                                    IconButton(
+                                      icon: const Icon(Icons.edit,
+                                          color: Colors.blue),
+                                      onPressed: () => _openTagDialog(package),
+                                    ),
+                                    IconButton(
+                                      icon: const Icon(Icons.delete,
+                                          color: Colors.red),
+                                      onPressed: () => _confirmDeletePackage(
+                                          context,
+                                          inventoryProvider,
+                                          package.id),
+                                    ),
+                                  ],
+                                ),
+                              )
+                            : const SizedBox.shrink(),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

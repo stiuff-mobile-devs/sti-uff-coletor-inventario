@@ -311,159 +311,166 @@ class _ItemDetailsPageState extends State<ItemDetailsPage> {
                 color: Colors.white,
               ),
             ),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-        child: Form(
-          key: _formKey,
-          child: ListView(
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            children: [
-              TextFormField(
-                cursorColor: AppColors.orangeSelectionColor,
-                initialValue: _barcode,
-                decoration: _inputDecoration('Código', readOnly: true),
-                readOnly: true,
-              ),
-              const SizedBox(height: 16),
-              Container(
-                padding: const EdgeInsets.all(8.0),
-                decoration: BoxDecoration(
-                  color: AppColors.orangeSelectionColor,
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                        color: Colors.black.withOpacity(0.2),
-                        offset: const Offset(0, 4),
-                        blurRadius: 4)
-                  ],
+      body: GestureDetector(
+        onTap: () {
+          FocusScope.of(context).requestFocus(FocusNode());
+        },
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: Form(
+            key: _formKey,
+            child: ListView(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              children: [
+                TextFormField(
+                  cursorColor: AppColors.orangeSelectionColor,
+                  initialValue: _barcode,
+                  decoration: _inputDecoration('Código', readOnly: true),
+                  readOnly: true,
                 ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    const Text(
-                      'Pacote: ',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white,
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.all(8.0),
+                  decoration: BoxDecoration(
+                    color: AppColors.orangeSelectionColor,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                          color: Colors.black.withOpacity(0.2),
+                          offset: const Offset(0, 4),
+                          blurRadius: 4)
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      const Text(
+                        'Pacote: ',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 16),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                      height: 32,
-                      decoration: BoxDecoration(
-                        color: (_isEditing)
-                            ? Colors.white
-                            : const Color.fromARGB(255, 231, 231, 231),
-                        borderRadius: BorderRadius.circular(5),
-                      ),
-                      child: (packages.isEmpty)
-                          ? const Center(
-                              child: Text('Sem pacotes disponíveis'),
-                            )
-                          : AbsorbPointer(
-                              absorbing: !_isEditing,
-                              child: DropdownButton<PackageModel>(
-                                value: selectedPackage,
-                                hint: const Text('Selecione um pacote'),
-                                items: packages
-                                    .map<DropdownMenuItem<PackageModel>>(
-                                        (PackageModel package) {
-                                  return DropdownMenuItem<PackageModel>(
-                                    value: package,
-                                    child: Text(package.name),
-                                  );
-                                }).toList(),
-                                onChanged: (PackageModel? value) {
-                                  setState(() {
-                                    selectedPackage = value;
-                                    _packageId = value?.id ?? 0;
-                                  });
-                                },
+                      const SizedBox(width: 16),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        height: 32,
+                        decoration: BoxDecoration(
+                          color: (_isEditing)
+                              ? Colors.white
+                              : const Color.fromARGB(255, 231, 231, 231),
+                          borderRadius: BorderRadius.circular(5),
+                        ),
+                        child: (packages.isEmpty)
+                            ? const Center(
+                                child: Text('Sem pacotes disponíveis'),
+                              )
+                            : AbsorbPointer(
+                                absorbing: !_isEditing,
+                                child: DropdownButton<PackageModel>(
+                                  value: selectedPackage,
+                                  hint: const Text('Selecione um pacote'),
+                                  items: packages
+                                      .map<DropdownMenuItem<PackageModel>>(
+                                          (PackageModel package) {
+                                    return DropdownMenuItem<PackageModel>(
+                                      value: package,
+                                      child: Text(package.name),
+                                    );
+                                  }).toList(),
+                                  onChanged: (PackageModel? value) {
+                                    setState(() {
+                                      selectedPackage = value;
+                                      _packageId = value?.id ?? 0;
+                                    });
+                                  },
+                                ),
                               ),
-                            ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                cursorColor: AppColors.orangeSelectionColor,
-                initialValue: _name,
-                decoration:
-                    _inputDecoration('Nome do Objeto', readOnly: !_isEditing),
-                readOnly: !_isEditing,
-                onChanged: (value) => _name = value,
-                validator: (value) => value == null || value.isEmpty
-                    ? 'Nome é obrigatório.'
-                    : null,
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                cursorColor: AppColors.orangeSelectionColor,
-                initialValue: _description,
-                decoration:
-                    _inputDecoration('Descrição', readOnly: !_isEditing),
-                readOnly: !_isEditing,
-                maxLines: 3,
-                onChanged: (value) => _description = value,
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                cursorColor: AppColors.orangeSelectionColor,
-                initialValue: _location,
-                decoration:
-                    _inputDecoration('Localidade', readOnly: !_isEditing),
-                readOnly: !_isEditing,
-                onChanged: (value) => _location = value,
-                validator: (value) => value == null || value.isEmpty
-                    ? 'Localidade é obrigatória.'
-                    : null,
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                cursorColor: AppColors.orangeSelectionColor,
-                initialValue: _geolocation ?? 'Não disponível',
-                decoration: _inputDecoration('Geolocalização', readOnly: true),
-                readOnly: true,
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                cursorColor: AppColors.orangeSelectionColor,
-                initialValue: _observations,
-                decoration:
-                    _inputDecoration('Observações', readOnly: !_isEditing),
-                readOnly: !_isEditing,
-                maxLines: 3,
-                onChanged: (value) => _observations = value,
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                cursorColor: AppColors.orangeSelectionColor,
-                initialValue: DateFormat('dd/MM/yyyy').format(widget.item.date),
-                decoration:
-                    _inputDecoration('Data de Registro', readOnly: true),
-                readOnly: true,
-              ),
-              const SizedBox(height: 16),
-              const Padding(
-                padding: EdgeInsets.only(
-                  left: 8.0,
-                ),
-                child: Text(
-                  'Imagens',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
+                      ),
+                    ],
                   ),
                 ),
-              ),
-              const SizedBox(height: 8),
-              _buildImageGrid(),
-              const SizedBox(height: 72),
-            ],
+                const SizedBox(height: 16),
+                TextFormField(
+                  cursorColor: AppColors.orangeSelectionColor,
+                  initialValue: _name,
+                  decoration:
+                      _inputDecoration('Nome do Objeto', readOnly: !_isEditing),
+                  readOnly: !_isEditing,
+                  onChanged: (value) => _name = value,
+                  validator: (value) => value == null || value.isEmpty
+                      ? 'Nome é obrigatório.'
+                      : null,
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  cursorColor: AppColors.orangeSelectionColor,
+                  initialValue: _description,
+                  decoration:
+                      _inputDecoration('Descrição', readOnly: !_isEditing),
+                  readOnly: !_isEditing,
+                  maxLines: 3,
+                  onChanged: (value) => _description = value,
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  cursorColor: AppColors.orangeSelectionColor,
+                  initialValue: _location,
+                  decoration:
+                      _inputDecoration('Localidade', readOnly: !_isEditing),
+                  readOnly: !_isEditing,
+                  onChanged: (value) => _location = value,
+                  validator: (value) => value == null || value.isEmpty
+                      ? 'Localidade é obrigatória.'
+                      : null,
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  cursorColor: AppColors.orangeSelectionColor,
+                  initialValue: _geolocation ?? 'Não disponível',
+                  decoration:
+                      _inputDecoration('Geolocalização', readOnly: true),
+                  readOnly: true,
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  cursorColor: AppColors.orangeSelectionColor,
+                  initialValue: _observations,
+                  decoration:
+                      _inputDecoration('Observações', readOnly: !_isEditing),
+                  readOnly: !_isEditing,
+                  maxLines: 3,
+                  onChanged: (value) => _observations = value,
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  cursorColor: AppColors.orangeSelectionColor,
+                  initialValue:
+                      DateFormat('dd/MM/yyyy').format(widget.item.date),
+                  decoration:
+                      _inputDecoration('Data de Registro', readOnly: true),
+                  readOnly: true,
+                ),
+                const SizedBox(height: 16),
+                const Padding(
+                  padding: EdgeInsets.only(
+                    left: 8.0,
+                  ),
+                  child: Text(
+                    'Imagens',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                _buildImageGrid(),
+                const SizedBox(height: 72),
+              ],
+            ),
           ),
         ),
       ),

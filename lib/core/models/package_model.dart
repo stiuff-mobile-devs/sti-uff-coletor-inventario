@@ -23,13 +23,21 @@ class PackageModel {
     };
   }
 
+  Map<String, dynamic> toLocalMap() {
+    return {
+      'id': id,
+      'name': name,
+      'tags': tags.join(','),
+    };
+  }
+
   static PackageModel fromMap(Map<String, dynamic> map) {
     return PackageModel(
       id: map['id'],
       name: map['name'],
-      tags: (map['tags'] as String).split(','),
-      // Timestamp
-      // userId
+      tags: (map['tags'] as String?)?.split(',') ?? [],
+      createdAt:
+          map['created_at'] != null ? DateTime.parse(map['created_at']) : null,
     );
   }
 }

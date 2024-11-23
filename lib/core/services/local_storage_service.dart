@@ -185,7 +185,7 @@ class DatabaseHelper {
     await db.insert(
       'inventory',
       {
-        ...item.toMap(),
+        ...item.toLocalMap(),
         'packageId': packageId,
       },
       conflictAlgorithm: ConflictAlgorithm.replace,
@@ -197,7 +197,7 @@ class DatabaseHelper {
     try {
       await db.update(
         'inventory',
-        item.toMap(),
+        item.toLocalMap(),
         where: 'barcode = ?',
         whereArgs: [item.barcode],
       );

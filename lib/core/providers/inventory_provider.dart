@@ -1,4 +1,4 @@
-// ignore_for_file: constant_identifier_names
+// ignore_for_file: constant_identifier_names, prefer_final_fields
 
 import 'dart:io';
 import 'dart:math';
@@ -18,18 +18,36 @@ class InventoryProvider with ChangeNotifier {
   List<InventoryItem> _items = [];
   List<PackageModel> _packages = [];
 
-  List<InventoryItem> _sentItems = [];
+  Map<int, List<InventoryItem>> _packagesItemsMap = {};
   List<PackageModel> _sentPackages = [];
 
   List<InventoryItem> get items => _items;
   List<PackageModel> get packages => _packages;
 
-  List<InventoryItem> get sentItems => _sentItems;
+  Map<int, List<InventoryItem>> get packagesItemsMap => _packagesItemsMap;
   List<PackageModel> get sentPackages => _sentPackages;
 
   final _random = Random();
 
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  Future<void> updatePackagesItemsMap() async {
+    try {
+      await getPackages();
+
+      Map<int, List<InventoryItem>> updatedMap = {};
+
+      for (var package in _sentPackages) {
+        final items = await getItemsForPackage(package.id);
+        updatedMap[package.id] = items;
+      }
+
+      _packagesItemsMap = updatedMap;
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Erro ao atualizar _sentItems: $e');
+    }
+  }
 
   Future<void> getPackages() async {
     try {
@@ -56,12 +74,12 @@ class InventoryProvider with ChangeNotifier {
     }
   }
 
-  Future<void> getItemsForPackage(int packageId) async {
+  Future<List<InventoryItem>> getItemsForPackage(int packageId) async {
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) {
         debugPrint('Usuário não autenticado');
-        return;
+        return [];
       }
 
       final itemsSnapshot = await _firestore
@@ -81,8 +99,7 @@ class InventoryProvider with ChangeNotifier {
           List<String> imageUrls = [];
           for (var imagePath in item.images!) {
             try {
-              final imageUrl = await getImageUrl(imagePath);
-              imageUrls.add(imageUrl);
+              imageUrls.add(imagePath);
             } catch (e) {
               debugPrint(
                   'Erro ao obter URL da imagem para o item ${item.barcode}: $e');
@@ -94,10 +111,10 @@ class InventoryProvider with ChangeNotifier {
         items.add(item);
       }
 
-      _sentItems = items;
-      notifyListeners();
+      return items;
     } catch (e) {
       debugPrint('Erro ao recuperar itens para o pacote #$packageId: $e');
+      return [];
     }
   }
 
@@ -112,18 +129,6 @@ class InventoryProvider with ChangeNotifier {
     } catch (e) {
       debugPrint('Erro ao enviar imagem para o Firebase Storage: $e');
       throw Exception('Erro ao enviar imagem');
-    }
-  }
-
-  Future<String> getImageUrl(String storagePath) async {
-    try {
-      final storageRef = FirebaseStorage.instance.ref().child(storagePath);
-      final downloadUrl = await storageRef.getDownloadURL();
-      debugPrint('URL da imagem recuperada: $downloadUrl');
-      return downloadUrl;
-    } catch (e) {
-      debugPrint('Erro ao recuperar URL da imagem: $e');
-      throw Exception('Erro ao recuperar imagem');
     }
   }
 
@@ -207,6 +212,7 @@ class InventoryProvider with ChangeNotifier {
 
         if (success) {
           await clearItemsForPackage(package.id);
+          await updatePackagesItemsMap();
         } else {
           debugPrint(
               'Erro no envio do pacote ${package.id}, itens não foram limpos');
