@@ -41,9 +41,22 @@ class InventoryItem {
     };
   }
 
+  Map<String, dynamic> toLocalMap() {
+    return {
+      'barcode': barcode,
+      'name': name,
+      'description': description,
+      'packageId': packageId,
+      'location': location,
+      'images': images?.join(',') ?? '',
+      'geolocation': geolocation,
+      'observations': observations,
+      'date': DateFormat('yyyy-MM-dd').format(date),
+    };
+  }
+
   factory InventoryItem.fromMap(Map<String, dynamic> map) {
     return InventoryItem(
-      // userId
       barcode: map['barcode'] ?? '',
       name: map['name'] ?? '',
       description: map['description'],

@@ -280,223 +280,234 @@ class _FormPageState extends State<FormPage> {
 
     return Scaffold(
       appBar: AppBar(),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-        child: Form(
-          key: _formKey,
-          child: ListView(
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            children: [
-              TextFormField(
-                cursorColor: AppColors.orangeSelectionColor,
-                controller: _codigoController,
-                readOnly: widget.barcode != null,
-                decoration: inputDecoration(
-                  label: 'Código',
+      body: GestureDetector(
+        onTap: () {
+          FocusScope.of(context).requestFocus(FocusNode());
+        },
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: Form(
+            key: _formKey,
+            child: ListView(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              children: [
+                TextFormField(
+                  cursorColor: AppColors.orangeSelectionColor,
+                  controller: _codigoController,
                   readOnly: widget.barcode != null,
-                  hasError: _hasBarcodeError,
+                  decoration: inputDecoration(
+                    label: 'Código',
+                    readOnly: widget.barcode != null,
+                    hasError: _hasBarcodeError,
+                  ),
+                  onChanged: (value) {
+                    _userEntryBarcode = value;
+                    setState(() {
+                      _hasBarcodeError = value.isEmpty;
+                    });
+                  },
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  keyboardType: TextInputType.number,
                 ),
-                onChanged: (value) {
-                  _userEntryBarcode = value;
-                  setState(() {
-                    _hasBarcodeError = value.isEmpty;
-                  });
-                },
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                keyboardType: TextInputType.number,
-              ),
-              if (_hasBarcodeError)
-                const Padding(
-                  padding: EdgeInsets.only(top: 8.0),
-                  child: Padding(
-                    padding: EdgeInsets.only(left: 13.5),
-                    child: Text(
-                      'O campo do código é obrigatório.',
-                      style: TextStyle(
-                          color: Color.fromARGB(255, 179, 12, 1), fontSize: 12),
+                if (_hasBarcodeError)
+                  const Padding(
+                    padding: EdgeInsets.only(top: 8.0),
+                    child: Padding(
+                      padding: EdgeInsets.only(left: 13.5),
+                      child: Text(
+                        'O campo do código é obrigatório.',
+                        style: TextStyle(
+                            color: Color.fromARGB(255, 179, 12, 1),
+                            fontSize: 12),
+                      ),
                     ),
                   ),
-                ),
-              const SizedBox(height: 16),
-              Container(
-                padding: const EdgeInsets.all(8.0),
-                decoration: BoxDecoration(
-                  color: AppColors.orangeSelectionColor,
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                        color: Colors.black.withOpacity(0.2),
-                        offset: const Offset(0, 4),
-                        blurRadius: 4)
-                  ],
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    const Text(
-                      'Pacote: ',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white,
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.all(8.0),
+                  decoration: BoxDecoration(
+                    color: AppColors.orangeSelectionColor,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                          color: Colors.black.withOpacity(0.2),
+                          offset: const Offset(0, 4),
+                          blurRadius: 4)
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      const Text(
+                        'Pacote: ',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 16),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                      height: 32,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(5),
+                      const SizedBox(width: 16),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        height: 32,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(5),
+                        ),
+                        child: (packages.isEmpty)
+                            ? const Center(
+                                child: Text('Sem pacotes disponíveis'),
+                              )
+                            : DropdownButton<PackageModel>(
+                                value: selectedPackage,
+                                hint: const Text('Selecione um pacote'),
+                                items: packages
+                                    .map<DropdownMenuItem<PackageModel>>(
+                                        (PackageModel package) {
+                                  return DropdownMenuItem<PackageModel>(
+                                    value: package,
+                                    child: Text(package.name),
+                                  );
+                                }).toList(),
+                                onChanged: (PackageModel? value) {
+                                  setState(() {
+                                    selectedPackage = value;
+                                  });
+                                },
+                              ),
                       ),
-                      child: (packages.isEmpty)
-                          ? const Center(
-                              child: Text('Sem pacotes disponíveis'),
-                            )
-                          : DropdownButton<PackageModel>(
-                              value: selectedPackage,
-                              hint: const Text('Selecione um pacote'),
-                              items: packages
-                                  .map<DropdownMenuItem<PackageModel>>(
-                                      (PackageModel package) {
-                                return DropdownMenuItem<PackageModel>(
-                                  value: package,
-                                  child: Text(package.name),
-                                );
-                              }).toList(),
-                              onChanged: (PackageModel? value) {
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  cursorColor: AppColors.orangeSelectionColor,
+                  decoration: inputDecoration(label: 'Nome do Objeto'),
+                  onChanged: (value) => _name = value,
+                  validator: (value) => value == null || value.isEmpty
+                      ? 'O nome do objeto é obrigatório.'
+                      : null,
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  cursorColor: AppColors.orangeSelectionColor,
+                  decoration: inputDecoration(label: 'Descrição'),
+                  maxLines: 3,
+                  onChanged: (value) => _description = value,
+                ),
+                const SizedBox(height: 16),
+                SizedBox(
+                  height: 100,
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: 3,
+                    itemBuilder: (context, index) {
+                      return ImageItem(
+                        imagePath:
+                            index < _images.length ? _images[index] : null,
+                        onRemove: index < _images.length
+                            ? () {
                                 setState(() {
-                                  selectedPackage = value;
+                                  _images.removeAt(index);
                                 });
-                              },
-                            ),
-                    ),
-                  ],
+                              }
+                            : null,
+                        onAddImage: index >= _images.length ? _addImage : null,
+                      );
+                    },
+                  ),
                 ),
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                cursorColor: AppColors.orangeSelectionColor,
-                decoration: inputDecoration(label: 'Nome do Objeto'),
-                onChanged: (value) => _name = value,
-                validator: (value) => value == null || value.isEmpty
-                    ? 'O nome do objeto é obrigatório.'
-                    : null,
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                cursorColor: AppColors.orangeSelectionColor,
-                decoration: inputDecoration(label: 'Descrição'),
-                maxLines: 3,
-                onChanged: (value) => _description = value,
-              ),
-              const SizedBox(height: 16),
-              SizedBox(
-                height: 100,
-                child: ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: 3,
-                  itemBuilder: (context, index) {
-                    return ImageItem(
-                      imagePath: index < _images.length ? _images[index] : null,
-                      onRemove: index < _images.length
-                          ? () {
-                              setState(() {
-                                _images.removeAt(index);
-                              });
-                            }
-                          : null,
-                      onAddImage: index >= _images.length ? _addImage : null,
-                    );
+                const SizedBox(height: 16),
+                TextFormField(
+                  cursorColor: AppColors.orangeSelectionColor,
+                  decoration: inputDecoration(
+                      label: 'Localidade (Departamento, Andar, Sala)'),
+                  onChanged: (value) => _location = value,
+                  validator: (value) => value == null || value.isEmpty
+                      ? 'A localidade é obrigatória.'
+                      : null,
+                ),
+                const Divider(),
+                _geolocationInfo(),
+                const Divider(),
+                TextFormField(
+                  cursorColor: AppColors.orangeSelectionColor,
+                  controller: _observacoesController,
+                  decoration: inputDecoration(label: 'Observações'),
+                  maxLines: 3,
+                  onChanged: (value) => _observations = value,
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  initialValue: DateFormat('dd/MM/yyyy').format(_currentDate),
+                  decoration:
+                      inputDecoration(label: 'Data Atual', readOnly: true),
+                  readOnly: true,
+                ),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: () async {
+                    if (_formKey.currentState!.validate()) {
+                      // IssueFix: Validator on TextFormController doesn't work properly.
+                      if ((widget.barcode == null || widget.barcode!.isEmpty) &&
+                          (_userEntryBarcode == null ||
+                              _userEntryBarcode!.isEmpty)) {
+                        setState(() {
+                          _hasBarcodeError = true;
+                        });
+                        return;
+                      }
+                      final inventoryProvider = Provider.of<InventoryProvider>(
+                          context,
+                          listen: false);
+                      // Criando um NOVO item de inventário
+                      InventoryItem newItem = InventoryItem(
+                        barcode: widget.barcode ?? _userEntryBarcode ?? '',
+                        name: _name ?? '',
+                        description: _description,
+                        packageId:
+                            (selectedPackage != null) ? selectedPackage!.id : 0,
+                        images: _images,
+                        location: _location ?? '',
+                        geolocation: _geolocation,
+                        observations: _observations,
+                        date: DateTime.now(),
+                      );
+                      // Salvando o item localmente
+                      int response = await inventoryProvider.addItem(newItem);
+                      if (response == 0) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                                content:
+                                    Text('Dados catalogados com sucesso!')));
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                                content: Text(
+                                    'Não foi possível realizar a operação.')));
+                      }
+                      Navigator.pop(context);
+                    }
                   },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
+                    elevation: 5,
+                    textStyle: const TextStyle(
+                        fontSize: 16, fontWeight: FontWeight.w600),
+                    side: const BorderSide(color: Colors.blue, width: 1.5),
+                  ),
+                  child: const Text('Salvar Item',
+                      style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600)),
                 ),
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                cursorColor: AppColors.orangeSelectionColor,
-                decoration: inputDecoration(
-                    label: 'Localidade (Departamento, Andar, Sala)'),
-                onChanged: (value) => _location = value,
-                validator: (value) => value == null || value.isEmpty
-                    ? 'A localidade é obrigatória.'
-                    : null,
-              ),
-              const Divider(),
-              _geolocationInfo(),
-              const Divider(),
-              TextFormField(
-                cursorColor: AppColors.orangeSelectionColor,
-                controller: _observacoesController,
-                decoration: inputDecoration(label: 'Observações'),
-                maxLines: 3,
-                onChanged: (value) => _observations = value,
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                initialValue: DateFormat('dd/MM/yyyy').format(_currentDate),
-                decoration:
-                    inputDecoration(label: 'Data Atual', readOnly: true),
-                readOnly: true,
-              ),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: () async {
-                  if (_formKey.currentState!.validate()) {
-                    // IssueFix: Validator on TextFormController doesn't work properly.
-                    if ((widget.barcode == null || widget.barcode!.isEmpty) &&
-                        (_userEntryBarcode == null ||
-                            _userEntryBarcode!.isEmpty)) {
-                      setState(() {
-                        _hasBarcodeError = true;
-                      });
-                      return;
-                    }
-                    final inventoryProvider =
-                        Provider.of<InventoryProvider>(context, listen: false);
-                    // Criando um NOVO item de inventário
-                    InventoryItem newItem = InventoryItem(
-                      barcode: widget.barcode ?? _userEntryBarcode ?? '',
-                      name: _name ?? '',
-                      description: _description,
-                      packageId:
-                          (selectedPackage != null) ? selectedPackage!.id : 0,
-                      images: _images,
-                      location: _location ?? '',
-                      geolocation: _geolocation,
-                      observations: _observations,
-                      date: DateTime.now(),
-                    );
-                    // Salvando o item localmente
-                    int response = await inventoryProvider.addItem(newItem);
-                    if (response == 0) {
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                          content: Text('Dados catalogados com sucesso!')));
-                    } else {
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                          content:
-                              Text('Não foi possível realizar a operação.')));
-                    }
-                    Navigator.pop(context);
-                  }
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
-                  elevation: 5,
-                  textStyle: const TextStyle(
-                      fontSize: 16, fontWeight: FontWeight.w600),
-                  side: const BorderSide(color: Colors.blue, width: 1.5),
-                ),
-                child: const Text('Salvar Item',
-                    style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600)),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
