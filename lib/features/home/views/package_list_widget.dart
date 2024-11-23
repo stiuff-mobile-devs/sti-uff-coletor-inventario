@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:stiuffcoletorinventario/core/models/inventory_item.dart';
+import 'package:stiuffcoletorinventario/core/models/package_model.dart';
 import 'package:stiuffcoletorinventario/core/providers/inventory_provider.dart';
 import 'package:stiuffcoletorinventario/shared/utils/app_colors.dart';
 import 'package:intl/intl.dart';
@@ -69,12 +70,47 @@ class _PackageListWidgetState extends State<PackageListWidget> {
     );
   }
 
+  List<PackageModel> _sortPackagesByCreatedAt(List<PackageModel> packages) {
+    final sortedPackages = List<PackageModel>.from(packages);
+
+    for (int i = 1; i < sortedPackages.length; i++) {
+      final current = sortedPackages[i];
+      int j = i - 1;
+
+      while (j >= 0 &&
+          (sortedPackages[j]
+                  .createdAt
+                  ?.isBefore(current.createdAt ?? DateTime.now()) ??
+              false)) {
+        sortedPackages[j + 1] = sortedPackages[j];
+        j--;
+      }
+      sortedPackages[j + 1] = current;
+    }
+
+    return sortedPackages;
+  }
+
+  Map<String, List<PackageModel>> _groupPackagesByMonth(
+      List<PackageModel> packages) {
+    final Map<String, List<PackageModel>> groupedPackages = {};
+    for (var package in packages) {
+      final date = package.createdAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+      final monthYear = DateFormat('MMMM \'de\' yyyy', 'pt_BR').format(date);
+      groupedPackages.putIfAbsent(monthYear, () => []).add(package);
+    }
+    return groupedPackages;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Consumer<InventoryProvider>(
       builder: (context, inventoryProvider, child) {
         final packages = inventoryProvider.sentPackages;
         final packagesItemsMap = inventoryProvider.packagesItemsMap;
+
+        // IssueFix: Sort() turns the items of the first package invisible. Do NOT use it.
+        // packages.sort((a, b) => b.createdAt!.compareTo(a.createdAt!));
 
         if (packages.isEmpty) {
           return const Center(
@@ -84,6 +120,9 @@ class _PackageListWidgetState extends State<PackageListWidget> {
             ),
           );
         }
+
+        final sortedPackages = _sortPackagesByCreatedAt(packages);
+        final groupedPackages = _groupPackagesByMonth(sortedPackages);
 
         return Column(
           children: [
@@ -101,54 +140,57 @@ class _PackageListWidgetState extends State<PackageListWidget> {
                 ),
               ),
             ),
-            Container(
-              decoration: const BoxDecoration(
-                color: Colors.amber,
-              ),
-              child: ListView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                padding: const EdgeInsets.symmetric(vertical: 8.0),
-                itemCount: packages.length,
-                itemBuilder: (context, index) {
-                  final package = packages[index];
-                  final items = packagesItemsMap[package.id] ?? [];
+            ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: groupedPackages.keys.length,
+              itemBuilder: (context, index) {
+                final monthYear = groupedPackages.keys.elementAt(index);
+                final monthPackages = groupedPackages[monthYear]!;
 
-                  final formattedDate = DateFormat('dd/MM/yyyy HH:mm').format(
-                      package.createdAt ??
-                          DateTime.fromMillisecondsSinceEpoch(1641031200000));
+                return ExpansionTile(
+                  title: Text(
+                    monthYear,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  children: monthPackages.map((PackageModel package) {
+                    final items = packagesItemsMap[package.id] ?? [];
+                    final formattedDate = DateFormat('dd/MM/yyyy HH:mm').format(
+                        package.createdAt ??
+                            DateTime.fromMillisecondsSinceEpoch(0));
 
-                  return Card(
-                    margin: const EdgeInsets.symmetric(
-                        vertical: 8.0, horizontal: 16.0),
-                    child: ExpansionTile(
-                      title:
-                          Text("Pacote: ${package.name} (ID: ${package.id})"),
-                      subtitle: Text(
-                          "Tags: ${package.tags.join(', ')}\nEnviado em: $formattedDate"),
-                      children: items.isEmpty
-                          ? [
-                              const Padding(
-                                padding: EdgeInsets.all(8.0),
-                                child: Text(
-                                  "Nenhum item associado a este pacote.",
-                                  style: TextStyle(color: Colors.grey),
+                    return Card(
+                      margin: const EdgeInsets.symmetric(
+                          vertical: 8.0, horizontal: 16.0),
+                      child: ExpansionTile(
+                        title:
+                            Text("Pacote: ${package.name} (ID: ${package.id})"),
+                        subtitle: Text(
+                            "Tags: ${package.tags.join(', ')}\nEnviado em: $formattedDate"),
+                        children: items.isEmpty
+                            ? [
+                                const Padding(
+                                  padding: EdgeInsets.all(8.0),
+                                  child: Text(
+                                    "Nenhum item associado a este pacote.",
+                                    style: TextStyle(color: Colors.grey),
+                                  ),
                                 ),
-                              ),
-                            ]
-                          : items.map((item) {
-                              return ListTile(
-                                title: Text(item.name),
-                                subtitle:
-                                    Text("Código de Barras: ${item.barcode}"),
-                                leading: const Icon(Icons.inventory),
-                                onTap: () => _showItemDetails(context, item),
-                              );
-                            }).toList(),
-                    ),
-                  );
-                },
-              ),
+                              ]
+                            : items.map((item) {
+                                return ListTile(
+                                  title: Text(item.name),
+                                  subtitle:
+                                      Text("Código de Barras: ${item.barcode}"),
+                                  leading: const Icon(Icons.inventory),
+                                  onTap: () => _showItemDetails(context, item),
+                                );
+                              }).toList(),
+                      ),
+                    );
+                  }).toList(),
+                );
+              },
             ),
           ],
         );

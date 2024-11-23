@@ -72,3 +72,5 @@ firebase.json
 # Functions
 functions/
 
+# Others
+pubspec.lock
