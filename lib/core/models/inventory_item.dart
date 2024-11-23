@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:intl/intl.dart';
 
 class InventoryItem {
+  String? userId;
   final String barcode;
   final String name;
   final String? description;
@@ -13,6 +14,7 @@ class InventoryItem {
   final DateTime date;
 
   InventoryItem({
+    this.userId,
     required this.barcode,
     required this.name,
     this.description,
@@ -26,6 +28,7 @@ class InventoryItem {
 
   Map<String, dynamic> toMap() {
     return {
+      'userId': userId,
       'barcode': barcode,
       'name': name,
       'description': description,
@@ -40,6 +43,7 @@ class InventoryItem {
 
   factory InventoryItem.fromMap(Map<String, dynamic> map) {
     return InventoryItem(
+      // userId
       barcode: map['barcode'] ?? '',
       name: map['name'] ?? '',
       description: map['description'],
