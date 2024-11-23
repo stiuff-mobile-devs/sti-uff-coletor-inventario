@@ -1,7 +1,10 @@
+// ignore_for_file: constant_identifier_names
+
 import 'dart:io';
 import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:stiuffcoletorinventario/core/models/inventory_item.dart';
 import 'package:stiuffcoletorinventario/core/models/package_model.dart';
@@ -9,15 +12,94 @@ import 'package:stiuffcoletorinventario/core/services/local_storage_service.dart
 import 'package:firebase_storage/firebase_storage.dart';
 
 class InventoryProvider with ChangeNotifier {
+  static const int DEFAULT_PACKAGE_ID = 0;
+  static const String DEFAULT_BARCODE_ID = "-1";
+
   List<InventoryItem> _items = [];
   List<PackageModel> _packages = [];
 
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  List<InventoryItem> _sentItems = [];
+  List<PackageModel> _sentPackages = [];
 
   List<InventoryItem> get items => _items;
   List<PackageModel> get packages => _packages;
 
+  List<InventoryItem> get sentItems => _sentItems;
+  List<PackageModel> get sentPackages => _sentPackages;
+
   final _random = Random();
+
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  Future<void> getPackages() async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        debugPrint('Usuário não autenticado');
+        return;
+      }
+
+      final packagesSnapshot = await _firestore
+          .collection('users')
+          .doc(user.uid)
+          .collection('packages')
+          .get();
+
+      final sentPackages = packagesSnapshot.docs
+          .map((doc) => PackageModel.fromMap(doc.data()))
+          .toList();
+
+      _sentPackages = sentPackages;
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Erro ao recuperar pacotes: $e');
+    }
+  }
+
+  Future<void> getItemsForPackage(int packageId) async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        debugPrint('Usuário não autenticado');
+        return;
+      }
+
+      final itemsSnapshot = await _firestore
+          .collection('users')
+          .doc(user.uid)
+          .collection('packages')
+          .doc(packageId.toString())
+          .collection('items')
+          .get();
+
+      List<InventoryItem> items = [];
+
+      for (var doc in itemsSnapshot.docs) {
+        final item = InventoryItem.fromMap(doc.data());
+
+        if (item.images != null && item.images!.isNotEmpty) {
+          List<String> imageUrls = [];
+          for (var imagePath in item.images!) {
+            try {
+              final imageUrl = await getImageUrl(imagePath);
+              imageUrls.add(imageUrl);
+            } catch (e) {
+              debugPrint(
+                  'Erro ao obter URL da imagem para o item ${item.barcode}: $e');
+            }
+          }
+          item.images = imageUrls;
+        }
+
+        items.add(item);
+      }
+
+      _sentItems = items;
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Erro ao recuperar itens para o pacote #$packageId: $e');
+    }
+  }
 
   Future<String> uploadImageToStorage(String path, String storagePath) async {
     try {
@@ -59,11 +141,18 @@ class InventoryProvider with ChangeNotifier {
   Future<int> sendPackageToFirebase(
       List<PackageModel> selectedPackages, List<InventoryItem> allItems) async {
     try {
+      final user = FirebaseAuth.instance.currentUser;
+
+      if (user == null) {
+        debugPrint('Erro: Usuário não autenticado');
+        return 401;
+      }
+
       for (var package in selectedPackages) {
         final packageItems =
             allItems.where((item) => item.packageId == package.id).toList();
 
-        if (package.id == 0) {
+        if (package.id == DEFAULT_PACKAGE_ID) {
           int newId;
           do {
             newId = _random.nextInt(90000000) + 10000000;
@@ -72,28 +161,39 @@ class InventoryProvider with ChangeNotifier {
           package.id = newId;
         }
 
-        final packageRef =
-            _firestore.collection('packages').doc(package.id.toString());
+        package.createdAt = DateTime.now();
+        package.userId = user.uid;
+
+        final packageRef = _firestore
+            .collection('users')
+            .doc(user.uid)
+            .collection('packages')
+            .doc(package.id.toString());
         await packageRef.set(package.toMap());
 
+        bool success = true;
+
+        List<String> uploadedUrls = [];
         for (var item in packageItems) {
           item.packageId = package.id;
+          item.userId = user.uid;
 
           if (item.images != null && item.images!.isNotEmpty) {
-            List<String> uploadedUrls = [];
             for (var imagePath in item.images!) {
               try {
                 final imageUrl = await uploadImageToStorage(
                   imagePath,
-                  'items/${package.id}/${item.barcode}/${DateTime.now().millisecondsSinceEpoch}.jpg',
+                  'users/${user.uid}/packages/${package.id}/items/${item.barcode}/${DateTime.now().millisecondsSinceEpoch}.jpg',
                 );
                 uploadedUrls.add(imageUrl);
               } catch (e) {
                 debugPrint(
                     'Erro ao fazer upload de imagem do item ${item.barcode}: $e');
-                return 502;
+                success = false;
+                break;
               }
             }
+            if (!success) break;
             item.images = uploadedUrls;
           }
 
@@ -101,11 +201,19 @@ class InventoryProvider with ChangeNotifier {
               .collection('items')
               .doc(item.barcode)
               .set(item.toMap());
+
+          if (!success) break;
         }
 
-        await clearItemsForPackage(package.id);
-        return 200;
+        if (success) {
+          await clearItemsForPackage(package.id);
+        } else {
+          debugPrint(
+              'Erro no envio do pacote ${package.id}, itens não foram limpos');
+          return 502;
+        }
       }
+      return 200;
     } catch (e) {
       debugPrint('Erro ao enviar para o Firebase: $e');
     }
@@ -176,7 +284,7 @@ class InventoryProvider with ChangeNotifier {
 
       for (var item in _items) {
         if ((item.packageId) == packageId) {
-          item.packageId = 0;
+          item.packageId = DEFAULT_PACKAGE_ID;
         }
       }
 
@@ -202,10 +310,10 @@ class InventoryProvider with ChangeNotifier {
     final existingItem = existingItems.firstWhere(
       (existingItem) => existingItem.barcode == item.barcode,
       orElse: () => InventoryItem(
-        barcode: "-1",
+        barcode: DEFAULT_BARCODE_ID,
         name: '',
         description: '',
-        packageId: 0,
+        packageId: DEFAULT_PACKAGE_ID,
         location: '',
         geolocation: '',
         observations: '',
@@ -214,7 +322,7 @@ class InventoryProvider with ChangeNotifier {
       ),
     );
 
-    if (existingItem.barcode != "-1") {
+    if (existingItem.barcode != DEFAULT_BARCODE_ID) {
       debugPrint('Erro: Já existe um item com o mesmo barcode.');
       return 1;
     }
@@ -254,17 +362,11 @@ class InventoryProvider with ChangeNotifier {
 
       final index = _items
           .indexWhere((existingItem) => existingItem.barcode == item.barcode);
-      if (index != -1) {
-        _items[index] = item;
-        notifyListeners();
-        return 0;
-      } else {
-        debugPrint(
-            'Item com barcode ${item.barcode} não encontrado na lista local.');
-      }
+      _items[index] = item;
+      notifyListeners();
+      return 0;
     } catch (e) {
       debugPrint('Erro ao atualizar item: $e');
-      return 1;
     }
     return 1;
   }

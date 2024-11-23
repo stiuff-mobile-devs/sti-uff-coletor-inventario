@@ -1,0 +1,9 @@
+build/
+dist/
+node_modules/
+npm-debug.log
+yarn-error.log
+functions/firebase-debug.log
+.env
+.git
+.firebase
