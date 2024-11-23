@@ -14,6 +14,8 @@ class PackageListWidget extends StatefulWidget {
 }
 
 class _PackageListWidgetState extends State<PackageListWidget> {
+  String _searchQuery = '';
+
   @override
   void initState() {
     super.initState();
@@ -109,10 +111,20 @@ class _PackageListWidgetState extends State<PackageListWidget> {
         final packages = inventoryProvider.sentPackages;
         final packagesItemsMap = inventoryProvider.packagesItemsMap;
 
-        // IssueFix: Sort() turns the items of the first package invisible. Do NOT use it.
-        // packages.sort((a, b) => b.createdAt!.compareTo(a.createdAt!));
+        final filteredPackages = packages.where((package) {
+          final matchesPackageName =
+              package.name.toLowerCase().contains(_searchQuery.toLowerCase());
+          final matchesItemName = packagesItemsMap[package.id]?.any((item) {
+                return item.name
+                    .toLowerCase()
+                    .contains(_searchQuery.toLowerCase());
+              }) ??
+              false;
 
-        if (packages.isEmpty) {
+          return matchesPackageName || matchesItemName;
+        }).toList();
+
+        if (filteredPackages.isEmpty) {
           return const Center(
             child: Text(
               "Nenhum pacote encontrado.",
@@ -121,11 +133,37 @@ class _PackageListWidgetState extends State<PackageListWidget> {
           );
         }
 
-        final sortedPackages = _sortPackagesByCreatedAt(packages);
+        final sortedPackages = _sortPackagesByCreatedAt(filteredPackages);
         final groupedPackages = _groupPackagesByMonth(sortedPackages);
 
         return Column(
           children: [
+            Padding(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      onChanged: (query) {
+                        setState(() {
+                          _searchQuery = query;
+                        });
+                      },
+                      decoration: const InputDecoration(
+                        labelText: 'Pesquisar Pacote ou Item',
+                        border: OutlineInputBorder(),
+                        suffixIcon: Icon(Icons.search),
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.filter_list),
+                    onPressed: () {},
+                  ),
+                ],
+              ),
+            ),
             const Padding(
               padding: EdgeInsets.only(top: 16, left: 16.0, bottom: 16.0),
               child: Align(
