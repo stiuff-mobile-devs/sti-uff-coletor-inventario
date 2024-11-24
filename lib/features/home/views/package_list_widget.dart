@@ -32,46 +32,169 @@ class _PackageListWidgetState extends State<PackageListWidget> {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(item.name),
-          content: SingleChildScrollView(
-            child: ListBody(
-              children: <Widget>[
-                Text('Código de Barras: ${item.barcode}'),
-                Text('Data de Captura: ${item.date}'),
-                Text('Descrição: ${item.description ?? "Não disponível"}'),
-                Text('Observações: ${item.observations ?? "Não disponível"}'),
-                Text('Localização: ${item.location}'),
-                Text('Geolocalização: ${item.geolocation ?? "Não disponível"}'),
-                if (item.images != null && item.images!.isNotEmpty) ...[
-                  const SizedBox(height: 8),
-                  const Text('Imagens:'),
-                  Wrap(
-                    spacing: 8.0,
-                    runSpacing: 8.0,
-                    children: item.images!.map((imageUrl) {
-                      return Image.network(
-                        imageUrl,
-                        width: 100,
-                        height: 100,
-                        fit: BoxFit.cover,
-                      );
-                    }).toList(),
+        return Dialog(
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Text(
+                    item.name,
+                    style: Theme.of(context).textTheme.headlineLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
+                        ),
+                  ),
+                  const SizedBox(height: 12),
+                  _buildDetailColumn('Código de Barras', item.barcode),
+                  _buildDetailColumn('Data de Captura',
+                      DateFormat('dd/MM/yyyy HH:mm').format(item.date)),
+                  _buildDetailColumn(
+                      'Descrição', item.description ?? 'Não disponível'),
+                  _buildDetailColumn(
+                      'Observações', item.observations ?? 'Não disponível'),
+                  _buildDetailColumn('Localização', item.location),
+                  _buildGeolocation(item.geolocation ?? 'Não disponível'),
+                  if (item.images != null && item.images!.isNotEmpty) ...[
+                    const SizedBox(height: 12),
+                    const Text(
+                      'Imagens:',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black54,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8.0,
+                      runSpacing: 8.0,
+                      children: item.images!.map((imageUrl) {
+                        return ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: Image.network(
+                            imageUrl,
+                            width: 100,
+                            height: 100,
+                            fit: BoxFit.cover,
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ],
+                  const SizedBox(height: 16),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 24, vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        elevation: 2,
+                      ),
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                      child: const Text(
+                        'Fechar',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w500,
+                          fontSize: 16,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
                   ),
                 ],
-              ],
+              ),
             ),
           ),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text('Fechar'),
-            ),
-          ],
         );
       },
+    );
+  }
+
+  Widget _buildGeolocation(String geolocation) {
+    if (geolocation.isEmpty) {
+      return const Text('Geolocalização: Não disponível');
+    }
+
+    final parts = geolocation.split(',');
+    if (parts.length < 3) return const Text('Geolocalização: Não disponível');
+
+    final latitude = parts[0].split(':')[1].trim();
+    final longitude = parts[1].split(':')[1].trim();
+    final altitude = parts[2].split(':')[1].trim();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Geolocalização:',
+          style: TextStyle(
+            fontWeight: FontWeight.w500,
+            color: Colors.black54,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          'Latitude: $latitude',
+          style: const TextStyle(
+            color: Colors.black87,
+            fontWeight: FontWeight.w400,
+          ),
+        ),
+        Text(
+          'Longitude: $longitude',
+          style: const TextStyle(
+            color: Colors.black87,
+            fontWeight: FontWeight.w400,
+          ),
+        ),
+        Text(
+          'Altitude: $altitude',
+          style: const TextStyle(
+            color: Colors.black87,
+            fontWeight: FontWeight.w400,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDetailColumn(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '$label:',
+            style: const TextStyle(
+              fontWeight: FontWeight.w500,
+              color: Colors.black54,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            value,
+            style: const TextStyle(
+              color: Colors.black87,
+              fontWeight: FontWeight.w400,
+            ),
+            maxLines: 3,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
     );
   }
 
@@ -273,62 +396,159 @@ class _PackageListWidgetState extends State<PackageListWidget> {
                                   groupedPackages.keys.elementAt(index);
                               final monthPackages = groupedPackages[monthYear]!;
 
-                              return ExpansionTile(
-                                title: Text(
-                                  toBeginningOfSentenceCase(monthYear) ??
-                                      monthYear,
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    color: Theme.of(context).primaryColor,
-                                    fontSize: 22,
-                                  ),
+                              return Theme(
+                                data: Theme.of(context).copyWith(
+                                  dividerColor: Colors.transparent,
+                                  // splashColor: Colors.white,
                                 ),
-                                children:
-                                    monthPackages.map((PackageModel package) {
-                                  final items =
-                                      packagesItemsMap[package.id] ?? [];
-                                  final formattedDate = DateFormat(
-                                          'dd/MM/yyyy HH:mm')
-                                      .format(package.createdAt ??
-                                          DateTime.fromMillisecondsSinceEpoch(
-                                              0));
-
-                                  return Card(
-                                    margin: const EdgeInsets.symmetric(
-                                        vertical: 8.0, horizontal: 16.0),
-                                    child: ExpansionTile(
-                                      title: Text(
-                                          "Pacote: ${package.name} (ID: ${package.id})"),
-                                      subtitle: Text(
-                                          "Tags: ${package.tags.join(', ')}\nEnviado em: $formattedDate"),
-                                      children: items.isEmpty
-                                          ? [
-                                              Padding(
-                                                padding:
-                                                    const EdgeInsets.all(8.0),
-                                                child: Text(
-                                                  "Nenhum item associado a este pacote.",
-                                                  style: TextStyle(
-                                                    color: Theme.of(context)
-                                                        .primaryColor,
-                                                  ),
-                                                ),
-                                              ),
-                                            ]
-                                          : items.map((item) {
-                                              return ListTile(
-                                                title: Text(item.name),
-                                                subtitle: Text(
-                                                    "Código de Barras: ${item.barcode}"),
-                                                leading:
-                                                    const Icon(Icons.inventory),
-                                                onTap: () => _showItemDetails(
-                                                    context, item),
-                                              );
-                                            }).toList(),
+                                child: ExpansionTile(
+                                  backgroundColor:
+                                      const Color.fromARGB(255, 255, 215, 97),
+                                  tilePadding: const EdgeInsets.only(
+                                    left: 20,
+                                    bottom: 8.0,
+                                    right: 20.0,
+                                  ),
+                                  title: Text(
+                                    toBeginningOfSentenceCase(monthYear) ??
+                                        monthYear,
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: Theme.of(context).primaryColor,
+                                      fontSize: 22,
                                     ),
-                                  );
-                                }).toList(),
+                                  ),
+                                  children:
+                                      monthPackages.map((PackageModel package) {
+                                    final items =
+                                        packagesItemsMap[package.id] ?? [];
+                                    final formattedDate = DateFormat(
+                                            'dd/MM/yyyy HH:mm')
+                                        .format(package.createdAt ??
+                                            DateTime.fromMillisecondsSinceEpoch(
+                                                0));
+
+                                    return Column(
+                                      children: [
+                                        Card(
+                                          margin: const EdgeInsets.only(
+                                              bottom: 8.0,
+                                              left: 16.0,
+                                              right: 16.0),
+                                          child: ExpansionTile(
+                                            title: Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
+                                              children: [
+                                                Text(
+                                                  package.name,
+                                                  style: Theme.of(context)
+                                                      .textTheme
+                                                      .headlineLarge
+                                                      ?.copyWith(
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        fontSize: 16,
+                                                        color: Colors.black87,
+                                                      ),
+                                                ),
+                                                Text(
+                                                  "ID: ${package.id}",
+                                                  style: Theme.of(context)
+                                                      .textTheme
+                                                      .bodyMedium
+                                                      ?.copyWith(
+                                                        color: Colors.grey[600],
+                                                        fontWeight:
+                                                            FontWeight.w500,
+                                                      ),
+                                                ),
+                                              ],
+                                            ),
+                                            subtitle: Padding(
+                                              padding: const EdgeInsets.only(
+                                                  top: 4.0),
+                                              child: Text(
+                                                "Tags: ${package.tags.join(', ')}\nEnviado em: $formattedDate",
+                                                style: Theme.of(context)
+                                                    .textTheme
+                                                    .bodyMedium
+                                                    ?.copyWith(
+                                                      color: Colors.grey[500],
+                                                      fontSize: 14,
+                                                    ),
+                                              ),
+                                            ),
+                                            children: items.isEmpty
+                                                ? [
+                                                    Padding(
+                                                      padding:
+                                                          const EdgeInsets.all(
+                                                              16.0),
+                                                      child: Text(
+                                                        "Nenhum item associado a este pacote.",
+                                                        style: TextStyle(
+                                                          color:
+                                                              Theme.of(context)
+                                                                  .primaryColor,
+                                                          fontStyle:
+                                                              FontStyle.italic,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ]
+                                                : items.map((item) {
+                                                    return Padding(
+                                                      padding: const EdgeInsets
+                                                          .symmetric(
+                                                          vertical: 4.0),
+                                                      child: ListTile(
+                                                        contentPadding:
+                                                            const EdgeInsets
+                                                                .symmetric(
+                                                                horizontal:
+                                                                    16.0),
+                                                        title: Text(
+                                                          item.name,
+                                                          style:
+                                                              const TextStyle(
+                                                            fontWeight:
+                                                                FontWeight.w500,
+                                                            fontSize: 16,
+                                                            color:
+                                                                Colors.black87,
+                                                          ),
+                                                        ),
+                                                        subtitle: Text(
+                                                          "Código de Barras: ${item.barcode}",
+                                                          style: TextStyle(
+                                                            color: Colors
+                                                                .grey[600],
+                                                            fontSize: 14,
+                                                          ),
+                                                        ),
+                                                        leading: Icon(
+                                                          Icons.all_inbox,
+                                                          color:
+                                                              Theme.of(context)
+                                                                  .primaryColor,
+                                                        ),
+                                                        onTap: () =>
+                                                            _showItemDetails(
+                                                                context, item),
+                                                      ),
+                                                    );
+                                                  }).toList(),
+                                          ),
+                                        ),
+                                        const SizedBox(
+                                          height: 8.0,
+                                        )
+                                      ],
+                                    );
+                                  }).toList(),
+                                ),
                               );
                             },
                           ),

@@ -8,14 +8,9 @@ import 'package:stiuffcoletorinventario/shared/components/info_carousel.dart';
 import 'package:stiuffcoletorinventario/features/home/views/inventory_grid.dart';
 import 'package:stiuffcoletorinventario/shared/utils/custom_page_router.dart';
 
-class HomePage extends StatefulWidget {
+class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
-  @override
-  State<HomePage> createState() => _HomePageState();
-}
-
-class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -25,20 +20,16 @@ class _HomePageState extends State<HomePage> {
       ),
       drawer: AppDrawer(selectedIndex: 0),
       body: GestureDetector(
-        onTap: () {
-          FocusScope.of(context).requestFocus(FocusNode());
-        },
-        child: const SingleChildScrollView(
-          child: Column(
-            children: [
-              InfoCarousel(),
-              SizedBox(height: 20),
-              InventoryGrid(),
-              SizedBox(height: 20),
-              PackageListWidget(),
-              SizedBox(height: 85),
-            ],
-          ),
+        onTap: () => FocusScope.of(context).unfocus(),
+        child: ListView(
+          children: const [
+            InfoCarousel(),
+            SizedBox(height: 20),
+            InventoryGrid(),
+            SizedBox(height: 20),
+            PackageListWidget(),
+            SizedBox(height: 90),
+          ],
         ),
       ),
       floatingActionButton: FloatingActionButton(
