@@ -24,16 +24,21 @@ class _HomePageState extends State<HomePage> {
         backgroundColor: Colors.blue,
       ),
       drawer: AppDrawer(selectedIndex: 0),
-      body: const SingleChildScrollView(
-        child: Column(
-          children: [
-            InfoCarousel(),
-            SizedBox(height: 20),
-            InventoryGrid(),
-            SizedBox(height: 20),
-            PackageListWidget(),
-            SizedBox(height: 85),
-          ],
+      body: GestureDetector(
+        onTap: () {
+          FocusScope.of(context).requestFocus(FocusNode());
+        },
+        child: const SingleChildScrollView(
+          child: Column(
+            children: [
+              InfoCarousel(),
+              SizedBox(height: 20),
+              InventoryGrid(),
+              SizedBox(height: 20),
+              PackageListWidget(),
+              SizedBox(height: 85),
+            ],
+          ),
         ),
       ),
       floatingActionButton: FloatingActionButton(

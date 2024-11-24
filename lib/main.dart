@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:stiuffcoletorinventario/core/providers/inventory_provider.dart';
 import 'package:stiuffcoletorinventario/features/about/views/about_page.dart';
 import 'package:stiuffcoletorinventario/features/camera/views/camera_page.dart';
+import 'package:stiuffcoletorinventario/features/home/controllers/tag_filter_controller.dart';
 import 'package:stiuffcoletorinventario/features/login/view/login_screen.dart';
 import 'features/home/views/home_page.dart';
 import 'features/settings/views/settings_page.dart';
@@ -18,8 +19,11 @@ void main() async {
   await initializeDateFormatting('pt_BR', null);
 
   runApp(
-    ChangeNotifierProvider(
-      create: (_) => InventoryProvider(),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => InventoryProvider()),
+        ChangeNotifierProvider(create: (_) => TagFilterController()),
+      ],
       child: const MyApp(),
     ),
   );
