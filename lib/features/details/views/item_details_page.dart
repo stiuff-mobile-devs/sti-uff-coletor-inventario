@@ -100,6 +100,7 @@ class _ItemDetailsPageState extends State<ItemDetailsPage> {
   }
 
   Future<void> _addImage() async {
+    widget.item.images ??= [];
     if (widget.item.images!.length < 3) {
       final ImageSource? source = await showDialog<ImageSource>(
         context: context,
@@ -130,6 +131,7 @@ class _ItemDetailsPageState extends State<ItemDetailsPage> {
         final XFile? image = await _picker.pickImage(source: source);
         if (image != null) {
           setState(() {
+            widget.item.images ??= [];
             widget.item.images!.add(image.path);
           });
         }
