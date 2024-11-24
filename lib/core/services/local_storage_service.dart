@@ -77,7 +77,7 @@ class DatabaseHelper {
 
     await db.insert(
       'packages',
-      package.toMap(),
+      package.toLocalMap(),
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
   }
@@ -87,7 +87,7 @@ class DatabaseHelper {
 
     await db.update(
       'packages',
-      package.toMap(),
+      package.toLocalMap(),
       where: 'id = ?',
       whereArgs: [package.id],
     );
