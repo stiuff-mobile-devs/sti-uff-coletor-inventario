@@ -8,6 +8,7 @@ import 'package:stiuffcoletorinventario/features/about/views/about_page.dart';
 import 'package:stiuffcoletorinventario/features/camera/views/camera_page.dart';
 import 'package:stiuffcoletorinventario/features/home/controllers/tag_filter_controller.dart';
 import 'package:stiuffcoletorinventario/features/login/view/login_screen.dart';
+import 'package:stiuffcoletorinventario/features/settings/controllers/pdf_report_controller.dart';
 import 'features/home/views/home_page.dart';
 import 'features/settings/views/settings_page.dart';
 import 'shared/utils/app_colors.dart';
@@ -23,6 +24,7 @@ void main() async {
       providers: [
         ChangeNotifierProvider(create: (_) => InventoryProvider()),
         ChangeNotifierProvider(create: (_) => TagFilterController()),
+        ChangeNotifierProvider(create: (_) => PdfReportController()),
       ],
       child: const MyApp(),
     ),

@@ -15,14 +15,14 @@ class InventoryProvider with ChangeNotifier {
   static const int DEFAULT_PACKAGE_ID = 0;
   static const String DEFAULT_BARCODE_ID = "-1";
 
-  List<InventoryItem> _items = [];
-  List<PackageModel> _packages = [];
+  List<InventoryItem> _localItems = [];
+  List<PackageModel> _localPackages = [];
 
   Map<int, List<InventoryItem>> _packagesItemsMap = {};
   List<PackageModel> _sentPackages = [];
 
-  List<InventoryItem> get items => _items;
-  List<PackageModel> get packages => _packages;
+  List<InventoryItem> get items => _localItems;
+  List<PackageModel> get packages => _localPackages;
 
   Map<int, List<InventoryItem>> get packagesItemsMap => _packagesItemsMap;
   List<PackageModel> get sentPackages => _sentPackages;
@@ -161,7 +161,7 @@ class InventoryProvider with ChangeNotifier {
           int newId;
           do {
             newId = _random.nextInt(90000000) + 10000000;
-          } while (_packages.any((p) => p.id == newId));
+          } while (_localPackages.any((p) => p.id == newId));
 
           package.id = newId;
         }
@@ -231,7 +231,7 @@ class InventoryProvider with ChangeNotifier {
 
     try {
       await localStorageService.removeItemsByPackageId(packageId).then((value) {
-        _items.removeWhere((item) => item.packageId == packageId);
+        _localItems.removeWhere((item) => item.packageId == packageId);
         notifyListeners();
       });
       debugPrint('Itens do pacote #$packageId limpos com sucesso.');
@@ -242,7 +242,7 @@ class InventoryProvider with ChangeNotifier {
 
   Future<void> loadPackages() async {
     final localStorageService = DatabaseHelper();
-    _packages = await localStorageService.getAllPackages();
+    _localPackages = await localStorageService.getAllPackages();
     notifyListeners();
   }
 
@@ -273,7 +273,7 @@ class InventoryProvider with ChangeNotifier {
 
     try {
       await localStorageService.insertPackage(package);
-      _packages.add(package);
+      _localPackages.add(package);
       notifyListeners();
       return 0;
     } catch (e) {
@@ -288,13 +288,13 @@ class InventoryProvider with ChangeNotifier {
     try {
       await localStorageService.removePackage(packageId);
 
-      for (var item in _items) {
+      for (var item in _localItems) {
         if ((item.packageId) == packageId) {
           item.packageId = DEFAULT_PACKAGE_ID;
         }
       }
 
-      _packages.removeWhere((package) => package.id == packageId);
+      _localPackages.removeWhere((package) => package.id == packageId);
 
       notifyListeners();
       debugPrint('Pacote removido com sucesso! #$packageId');
@@ -305,7 +305,7 @@ class InventoryProvider with ChangeNotifier {
 
   Future<void> loadItems() async {
     final localStorageService = DatabaseHelper();
-    _items = await localStorageService.getAllItems();
+    _localItems = await localStorageService.getAllItems();
     notifyListeners();
   }
 
@@ -335,7 +335,7 @@ class InventoryProvider with ChangeNotifier {
 
     try {
       await localStorageService.saveInventoryItemLocally(item);
-      _items.add(item);
+      _localItems.add(item);
       notifyListeners();
       return 0;
     } catch (e) {
@@ -350,7 +350,7 @@ class InventoryProvider with ChangeNotifier {
     try {
       await localStorageService.removeItem(item);
 
-      _items
+      _localItems
           .removeWhere((existingItem) => existingItem.barcode == item.barcode);
 
       notifyListeners();
@@ -366,9 +366,9 @@ class InventoryProvider with ChangeNotifier {
     try {
       await localStorageService.updateInventoryItem(item);
 
-      final index = _items
+      final index = _localItems
           .indexWhere((existingItem) => existingItem.barcode == item.barcode);
-      _items[index] = item;
+      _localItems[index] = item;
       notifyListeners();
       return 0;
     } catch (e) {
@@ -380,7 +380,7 @@ class InventoryProvider with ChangeNotifier {
   Future<void> clearItems() async {
     final localStorageService = DatabaseHelper();
     await localStorageService.clearItems();
-    _items.clear();
+    _localItems.clear();
     notifyListeners();
   }
 }
