@@ -37,7 +37,7 @@ class InventoryItem {
       'images': images,
       'geolocation': geolocation,
       'observations': observations,
-      'date': DateFormat('yyyy-MM-dd').format(date),
+      'date': DateFormat('yyyy-MM-dd HH:mm HH:mm').format(date),
     };
   }
 
@@ -51,7 +51,7 @@ class InventoryItem {
       'images': images?.join(',') ?? '',
       'geolocation': geolocation,
       'observations': observations,
-      'date': DateFormat('yyyy-MM-dd').format(date),
+      'date': DateFormat('yyyy-MM-dd HH:mm').format(date),
     };
   }
 
@@ -65,7 +65,7 @@ class InventoryItem {
       images: List<String>.from(map['images'] ?? []),
       geolocation: map['geolocation'],
       observations: map['observations'],
-      date: DateFormat('yyyy-MM-dd').parse(
+      date: DateFormat('yyyy-MM-dd HH:mm').parse(
         map['date'] ?? DateTime.now().toString(),
       ),
     );
