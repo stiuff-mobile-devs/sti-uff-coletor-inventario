@@ -1,11 +1,11 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:path_provider/path_provider.dart';
 import 'package:open_file/open_file.dart';
 import 'package:provider/provider.dart';
 import 'package:stiuffcoletorinventario/core/models/inventory_item.dart';
-import 'package:stiuffcoletorinventario/core/models/package_model.dart';
 import 'package:stiuffcoletorinventario/core/providers/inventory_provider.dart';
 
 class PdfReportController extends ChangeNotifier {
@@ -26,7 +26,6 @@ class PdfReportController extends ChangeNotifier {
         Provider.of<InventoryProvider>(context, listen: false);
 
     List<InventoryItem> items = inventoryProvider.items;
-    List<PackageModel> packages = inventoryProvider.packages;
 
     pdf.addPage(pw.Page(
       build: (pw.Context context) {
@@ -37,36 +36,102 @@ class PdfReportController extends ChangeNotifier {
                   style: pw.TextStyle(
                       fontSize: 24, fontWeight: pw.FontWeight.bold)),
               pw.SizedBox(height: 20),
-              pw.Text('Total de Itens: ${items.length}',
+              pw.Text('Nº de Itens Catalogados: ${items.length}',
                   style: const pw.TextStyle(fontSize: 18)),
-              pw.Text('Última Atualização: ${DateTime.now().toString()}',
+              pw.Text(
+                  'Última Atualização: ${DateFormat('dd/MM/yyyy HH:mm').format(DateTime.now())}',
                   style: const pw.TextStyle(fontSize: 18)),
               pw.SizedBox(height: 20),
               pw.Table(
                 border: pw.TableBorder.all(),
                 children: [
-                  pw.TableRow(children: [
-                    pw.Text('Código de Barras',
-                        style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
-                    pw.Text('Nome',
-                        style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
-                    pw.Text('Descrição',
-                        style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
-                    pw.Text('Localização',
-                        style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
-                    pw.Text('Imagens',
-                        style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
-                  ]),
-                  ...items.map(
-                    (item) {
-                      return pw.TableRow(children: [
-                        pw.Text(item.barcode),
-                        pw.Text(item.name),
-                        pw.Text(item.description ?? 'N/A'),
-                        pw.Text(item.location),
-                        pw.Text(item.images?.join(', ') ?? 'Sem imagens'),
-                      ]);
-                    },
+                  pw.TableRow(
+                    children: [
+                      pw.Table(
+                        border: pw.TableBorder.all(),
+                        children: List.generate(8, (rowIndex) {
+                          return pw.TableRow(
+                            children: List.generate(1, (colIndex) {
+                              return pw.Padding(
+                                padding: const pw.EdgeInsets.all(4),
+                                // Tabela Aninhada
+                                child: pw.Table(
+                                  border: pw.TableBorder.all(),
+                                  children: List.generate(1, (innerRowIndex) {
+                                    if (rowIndex == 2 || rowIndex == 6) {
+                                      return pw.TableRow(
+                                        children:
+                                            List.generate(1, (innerColIndex) {
+                                          return pw.Padding(
+                                            padding: const pw.EdgeInsets.all(4),
+                                            child: pw.Text('Célula Mesclada'),
+                                          );
+                                        }),
+                                      );
+                                    }
+                                    return pw.TableRow(
+                                      children:
+                                          List.generate(2, (innerColIndex) {
+                                        return pw.Padding(
+                                          padding: const pw.EdgeInsets.all(4),
+                                          child: pw.Text(
+                                              'R${rowIndex + 1}C${innerColIndex + 1}'),
+                                        );
+                                      }),
+                                    );
+                                  }),
+                                ),
+                              );
+                            }),
+                          );
+                        }),
+                      ),
+                      pw.Column(
+                        children: [
+                          // Tabela 1x1 (Header)
+                          pw.Table(
+                            border: pw.TableBorder.all(),
+                            children: [
+                              pw.TableRow(
+                                children: [
+                                  pw.Padding(
+                                    padding: const pw.EdgeInsets.all(4),
+                                    child: pw.Center(
+                                      child: pw.Text(
+                                        'Imagens do Item',
+                                        style: pw.TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: pw.FontWeight.normal,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                          pw.Table(
+                            border: pw.TableBorder.all(),
+                            children: List.generate(2, (rowIndex) {
+                              return pw.TableRow(
+                                children: List.generate(2, (colIndex) {
+                                  return pw.Padding(
+                                    padding: const pw.EdgeInsets.all(4),
+                                    child: pw.SizedBox(
+                                      height: 100,
+                                      child: pw.Center(
+                                        child: pw.Text(
+                                            'R${rowIndex + 1}C${colIndex + 1}'),
+                                      ),
+                                    ),
+                                  );
+                                }),
+                              );
+                            }),
+                          ),
+                        ],
+                      )
+                    ],
                   ),
                 ],
               ),
