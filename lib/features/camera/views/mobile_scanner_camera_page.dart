@@ -61,14 +61,6 @@ class _AlternateCameraPageState extends State<AlternateCameraPage> {
               });
             },
           ),
-          Positioned(
-            top: 40,
-            left: 16,
-            child: IconButton(
-              icon: const Icon(Icons.arrow_back, color: Colors.white),
-              onPressed: () => Navigator.of(context).pop(),
-            ),
-          ),
           Center(
             child: Opacity(
               opacity: 0.5,
@@ -86,6 +78,14 @@ class _AlternateCameraPageState extends State<AlternateCameraPage> {
           CustomPaint(
             painter: BarcodeRectPainter(_barcodeRects),
             child: Container(),
+          ),
+          Positioned(
+            top: 40,
+            left: 16,
+            child: IconButton(
+              icon: const Icon(Icons.arrow_back, color: Colors.white),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
           ),
           AnimatedPositioned(
             duration: const Duration(milliseconds: 500),
