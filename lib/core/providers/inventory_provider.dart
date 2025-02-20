@@ -10,6 +10,7 @@ import 'package:stiuffcoletorinventario/core/models/inventory_item.dart';
 import 'package:stiuffcoletorinventario/core/models/package_model.dart';
 import 'package:stiuffcoletorinventario/core/services/local_storage_service.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:stiuffcoletorinventario/core/services/google_drive_service.dart';
 
 class InventoryProvider with ChangeNotifier {
   static const int DEFAULT_PACKAGE_ID = 0;
@@ -385,5 +386,51 @@ class InventoryProvider with ChangeNotifier {
     await localStorageService.clearItems();
     _localItems.clear();
     notifyListeners();
+  }
+
+  Future<void> exportDataToGoogleSheet() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      debugPrint('Erro: Usuário não autenticado');
+      return;
+    }
+
+    try {
+      final packagesSnapshot = await _firestore
+          .collection('users')
+          .doc(user.uid)
+          .collection('packages')
+          .get();
+
+      List<List<String>> data = [
+        ['Package ID', 'Package Name', 'Item Barcode', 'Item Name']
+      ];
+
+      for (var packageDoc in packagesSnapshot.docs) {
+        final package = PackageModel.fromMap(packageDoc.data());
+        final itemsSnapshot = await _firestore
+            .collection('users')
+            .doc(user.uid)
+            .collection('packages')
+            .doc(package.id.toString())
+            .collection('items')
+            .get();
+
+        for (var itemDoc in itemsSnapshot.docs) {
+          final item = InventoryItem.fromMap(itemDoc.data());
+          data.add([
+            package.id.toString(),
+            package.name,
+            item.barcode,
+            item.name,
+          ]);
+        }
+      }
+
+      final googleDriveService = GoogleDriveService();
+      await googleDriveService.saveDataToSheet(data);
+    } catch (e) {
+      debugPrint('Erro ao exportar dados para o Google Sheets: $e');
+    }
   }
 }

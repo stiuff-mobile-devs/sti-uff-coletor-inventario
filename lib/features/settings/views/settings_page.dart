@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:stiuffcoletorinventario/features/settings/views/generate_report_widget.dart';
 import 'package:stiuffcoletorinventario/shared/components/app_drawer.dart';
 import 'package:stiuffcoletorinventario/features/settings/views/package_widget.dart';
 import 'package:stiuffcoletorinventario/shared/utils/app_colors.dart';
+import 'package:stiuffcoletorinventario/core/providers/inventory_provider.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -149,6 +151,13 @@ class SettingsPageState extends State<SettingsPage> {
                 const SizedBox(height: 20),
                 const PackageWidget(),
                 const SizedBox(height: 20),
+                ElevatedButton(
+                  onPressed: () async {
+                    final provider = Provider.of<InventoryProvider>(context, listen: false);
+                    await provider.exportDataToGoogleSheet();
+                  },
+                  child: Text('Exportar para Google Sheets'),
+                ),
               ],
             ),
           ),
