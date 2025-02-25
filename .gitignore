@@ -75,3 +75,4 @@ functions/
 # Others
 pubspec.lock
 upload_keystore.jks
+assets/credentials.json
