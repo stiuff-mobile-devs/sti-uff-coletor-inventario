@@ -388,7 +388,7 @@ class InventoryProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> exportDataToGoogleSheet() async {
+  Future<void> exportDataToGoogleSheet(BuildContext context) async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
       debugPrint('Erro: Usuário não autenticado');
@@ -403,7 +403,18 @@ class InventoryProvider with ChangeNotifier {
           .get();
 
       List<List<String>> data = [
-        ['Package ID', 'Package Name', 'Item Barcode', 'Item Name']
+        [
+          'Package ID',
+          'Package Name',
+          'Item Barcode',
+          'Item Name',
+          'Description',
+          'Geolocation',
+          'Location',
+          'Observations',
+          'Date',
+          'Images'
+        ]
       ];
 
       for (var packageDoc in packagesSnapshot.docs) {
@@ -423,12 +434,18 @@ class InventoryProvider with ChangeNotifier {
             package.name,
             item.barcode,
             item.name,
+            item.description ?? 'null',
+            item.geolocation ?? 'null',
+            item.location,
+            item.observations ?? 'null',
+            item.date.toString(),
+            item.images?.join(', ') ?? '[]'
           ]);
         }
       }
 
       final googleDriveService = GoogleDriveService();
-      await googleDriveService.saveDataToSheet(data);
+      await googleDriveService.saveDataToSheet(context, data);
     } catch (e) {
       debugPrint('Erro ao exportar dados para o Google Sheets: $e');
     }

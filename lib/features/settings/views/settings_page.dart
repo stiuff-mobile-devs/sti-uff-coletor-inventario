@@ -151,12 +151,40 @@ class SettingsPageState extends State<SettingsPage> {
                 const SizedBox(height: 20),
                 const PackageWidget(),
                 const SizedBox(height: 20),
-                ElevatedButton(
-                  onPressed: () async {
-                    final provider = Provider.of<InventoryProvider>(context, listen: false);
-                    await provider.exportDataToGoogleSheet();
-                  },
-                  child: Text('Exportar para Google Sheets'),
+                Center(
+                  child: Column(
+                    children: [
+                       const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 16.0),
+                        child: Text(
+                          'Este botão exportará os dados para uma planilha do Google Sheets e salvará no e-mail do usuário autenticado.',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(fontSize: 14, color: Colors.black54),
+                        ),
+                      ),
+                                            const SizedBox(height: 20), // Add empty space below the button
+
+                      ElevatedButton.icon(
+                        onPressed: () async {
+                          final provider = Provider.of<InventoryProvider>(context, listen: false);
+                          await provider.exportDataToGoogleSheet(context);
+                        },
+                        icon: Image.asset(
+                          'assets/icons/google.png', // Use the path to your Google Sheets icon
+                          height: 24.0,
+                          width: 24.0,
+                        ),
+                        label: const Text('Exportar para Google Sheets'),
+                        style: ElevatedButton.styleFrom(
+                          foregroundColor: Colors.white, backgroundColor: Colors.green, // Set the text color to white
+                          padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+                          textStyle: TextStyle(fontSize: 16),
+                        ),
+                      ),
+                      const SizedBox(height: 50), // Add empty space below the button
+                     
+                    ],
+                  ),
                 ),
               ],
             ),
